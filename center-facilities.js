@@ -1,0 +1,16 @@
+window.CENTER_SPACES=[{id:'education',name:'교육실',short:'교육실',color:'#d5e4ef',staff:'교육 안내 직원',greeting:'안전보건교육을 함께 준비하는 공간입니다. 어떤 지원이 궁금하신가요?',source:'https://www.tjwhc.or.kr/page/sub2_6_rn',topics:[['사업장 교육을 문의하고 싶어요','센터에서는 전문인력의 안전보건교육과 개별 건강상담 지원을 안내하고 있습니다. 실제 지원 범위와 일정은 담당자와 확인해 주세요.','사업장 업종, 인원, 희망 주제와 일정을 정리해 문의해 주세요.'],['교육 신청서가 필요해요','이 사이트 아래의 안전보건교육신청서에서 공식 홈페이지에 게시된 HWP 양식을 내려받을 수 있어요.','작성 후 제출 방법은 센터 대표전화로 확인해 주세요.'],['교육 분야를 알아보고 싶어요','뇌심혈관질환 예방, 근골격계질환 예방, 직무스트레스 예방, 작업환경관리 등의 교육이 소개되어 있습니다.','원하는 주제의 교육 가능 여부를 문의해 보세요.']]}];
+const facilityInfo={
+reception:{name:'접수데스크',text:'입구에서 정면에 있는 접수데스크입니다. 처음 방문하셨다면 원하는 상담 분야와 방문 목적을 직원에게 말씀해 주세요.',steps:['원하는 상담 분야 이야기하기','담당자와 이용 가능 시간·준비물 확인하기'],room:null},
+bloodpressure:{name:'자동혈압계',text:'접수데스크 앞에서 볼 수 있는 자동혈압계입니다. 사진을 참고한 가상 기구로, 이 화면에서는 혈압을 측정하거나 결과를 생성하지 않습니다.',steps:['실제 기기의 사용법을 직원에게 먼저 확인하기','기기 사용 후 결과가 궁금하면 직원에게 상담 문의하기'],room:'cardio'},
+coffee:{name:'커피머신',text:'왼쪽 자동혈압계 앞쪽에 마련된 음료 공간입니다. 커피머신과 정수기를 사진의 형태에 맞춰 배치했습니다.',steps:['현장 이용 안내와 직원의 설명 확인하기','검사 전 음료 섭취 가능 여부는 담당자에게 물어보기'],room:null},
+water:{name:'정수기',text:'커피머신 옆 정수기입니다. 잠시 머무를 수 있는 센터의 휴게 공간을 둘러보세요.',steps:['현장 이용 안내 확인하기','검사·상담 전 준비사항이 있다면 담당자에게 확인하기'],room:null},
+inbody:{name:'체성분 분석기',text:'사진 속 발판과 손잡이가 있는 체성분 분석기를 참고했습니다. 가상 공간에서는 체성분을 측정하지 않습니다.',steps:['측정 가능 여부와 준비사항을 담당자에게 확인하기','실제 측정 결과는 담당자와 함께 살펴보기'],room:'general'},
+bloodtest:{name:'혈액검사 관련 장비',text:'사진에 보이는 혈당·지질 측정기와 검사 장비의 외형을 참고했습니다. 이곳에서는 채혈이나 검사를 진행하지 않습니다.',steps:['검사 가능 항목과 준비사항을 센터에 문의하기','검사 결과는 실제 상담에서 확인하기'],room:'cardio'},
+bike:{name:'실내 자전거',text:'근골격계질환상담실 안의 운동기구입니다. 실제 운동 강도와 이용 가능 여부는 담당자에게 확인해 주세요.',steps:['현재 몸 상태와 불편한 점을 담당자에게 이야기하기','안내받은 이용 방법과 시간을 확인하기'],room:'muscle'},
+treadmill:{name:'걷기 운동기구',text:'사진 속 운동기구를 참고해 만든 가상 모델입니다. 웹에서는 실제 운동이나 기기 작동을 수행하지 않습니다.',steps:['이용 전 담당자에게 적합한 운동 방법 확인하기','불편함이 있으면 실제 사용을 멈추고 직원에게 알리기'],room:'muscle'},
+ceragem:{name:'세라젬',text:'근골격계질환상담실에 있는 휴식 기구를 둘러볼 수 있습니다. 실제 사용 대상과 이용 방법은 현장의 담당자가 안내합니다.',steps:['현재 상태와 사용 가능 여부를 담당자에게 확인하기','현장 안내에 따라 이용하기'],room:'muscle',pose:true},
+massage:{name:'안마기',text:'사진 속 리클라이닝 안마기 형태를 참고했습니다. 가상 체험은 실제 안마나 치료 효과를 제공하지 않습니다.',steps:['이용 전 담당자에게 사용 가능 여부 확인하기','안내받은 방법으로 이용하기'],room:'muscle',pose:true},
+weights:{name:'운동 소도구',text:'짐볼, 덤벨, 케틀벨과 매트 등 사진에 있는 운동 소도구를 배치했습니다.',steps:['담당자에게 자신에게 맞는 도구와 운동 방법 문의하기','소도구 사용 후 현장 안내에 맞춰 정리하기'],room:'muscle'}
+};
+function openFacility(id){const f=facilityInfo[id];if(!f)return;show(f.name,'<span class="eyebrow">센터 물건 둘러보기</span><h2>'+f.name+'</h2><p>'+f.text+'</p><ul class="checks">'+f.steps.map(s=>'<li>'+s+'</li>').join('')+'</ul><div class="actions">'+(f.room?'<button class="btn" id="facility-counsel">관련 상담실로 가기</button>':'<a class="btn" href="tel:0429369571">센터에 전화 문의 ↗</a>')+(f.pose?'<button class="btn light" id="facility-pose">가상 자세 체험</button>':'')+'</div><p class="small">사용자가 제공한 실제 센터 사진과 배치 설명을 참고한 모형입니다. 실제 이용은 담당자 안내를 따라 주세요.</p>');if(f.room)$('#facility-counsel').onclick=()=>{dlg.close();document.dispatchEvent(new CustomEvent('counsel-enter',{detail:f.room}))};if(f.pose)$('#facility-pose').onclick=()=>{dlg.close();document.dispatchEvent(new CustomEvent('facility-pose',{detail:id}))}}
+document.addEventListener('facility-open',e=>openFacility(e.detail));document.querySelectorAll('[data-facility]').forEach(b=>b.onclick=()=>openFacility(b.dataset.facility));
