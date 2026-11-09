@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import {makeDevice} from './center-models.js';
+import {CENTER_PLAN,planPortal} from './center-plan.js';
 const host=document.querySelector('#world'),status=document.querySelector('#world-status');
 try { init(); } catch(e) { status.textContent='3D 공간을 불러오지 못했어요. 아래 체험 메뉴는 그대로 이용할 수 있습니다.';host.classList.add('failed');console.error(e); }
 function init(){
@@ -7,7 +8,7 @@ let buildRoot;
 let viewMode='follow',yaw=0,pitch=.15;const indoorParts=[],worldLabels=[];let obstacles=[],cameraSolids=[],navGrid=null,pathfinder=null,pathQueue=[],pathRequest=0,doorCooldown=0;
 const scene=new THREE.Scene();scene.background=new THREE.Color('#e7f1ed');
 const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.setClearColor('#e7f1ed');host.prepend(renderer.domElement);renderer.domElement.setAttribute('aria-label','캐릭터로 산책하는 가상의 건강센터');renderer.domElement.setAttribute('role','img');renderer.domElement.tabIndex=0;
-const camera=new THREE.PerspectiveCamera(62,1,.08,200);const look=new THREE.Vector3(0,0,0);let zoom=1,angle=0;const base=new THREE.Vector3(27,34,43);
+const camera=new THREE.PerspectiveCamera(62,1,.08,200);const look=new THREE.Vector3(0,0,0);let zoom=1,angle=0;const base=new THREE.Vector3(20,27,32);
 scene.add(new THREE.HemisphereLight(0xffffff,0x86a99a,2.6));const sun=new THREE.DirectionalLight(0xfff3d9,3.2);sun.position.set(-12,24,12);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-24,right:24,top:24,bottom:-24});sun.shadow.normalBias=.03;scene.add(sun);
 const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.85});const mats={green:mat('#5f8f77'),dark:mat('#2c6656'),white:mat('#f1f2f0'),wood:mat('#c5a77e'),pink:mat('#d78f9f'),blue:mat('#92bac9'),yellow:mat('#e2c66f'),leaf:mat('#70a487'),floor:mat('#e5e7e6'),skin:mat('#f4ccaa')};
 function box(w,h,d,x,y,z,m,parent=buildRoot){const a=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof m==='string'?mat(m):m);a.position.set(x,y,z);a.castShadow=true;a.receiveShadow=true;parent.add(a);return a}
@@ -20,9 +21,16 @@ function table(x,z,w=2.5){const g=new THREE.Group();g.position.set(x,0,z);buildR
 function person(color){const g=new THREE.Group();const shirt=mat(color);const legs=[],arms=[];cylinder(.33,.8,0,1.12,0,shirt,g);sphere(.32,0,1.9,0,mats.skin,g);const hair=sphere(.33,0,2.03,-.035,mat('#564a3f'),g);hair.scale.y=.6;for(const x of [-.12,.12])sphere(.025,x,1.92,.295,mats.dark,g);for(const x of [-.17,.17]){const p=new THREE.Group();p.position.set(x,.75,0);g.add(p);box(.23,.65,.24,0,-.28,0,mats.dark,p);box(.26,.16,.4,0,-.64,.07,mats.white,p);legs.push(p)}for(const x of [-.43,.43]){const p=new THREE.Group();p.position.set(x,1.5,0);g.add(p);box(.2,.55,.2,0,-.22,0,shirt,p);sphere(.12,0,-.55,0,mats.skin,p);arms.push(p)}buildRoot.add(g);return {g,legs,arms,shirt}}
 
 const defs=[...window.COUNSEL_ROOMS,...window.CENTER_SPACES];const lobby=new THREE.Group(),interior=new THREE.Group();scene.add(lobby,interior);interior.visible=false;buildRoot=lobby;
-box(39,.5,39,0,-.35,-1.5,mats.green);box(70,.15,65,0,-.75,0,'#e3e9e6');box(37,.12,37,0,-.06,-1.5,mats.floor);
-for(let x=-17;x<19;x+=2)for(let z=-18;z<17;z+=2)box(1.97,.014,1.97,x,.015,z,(x+z)%4?'#e3e5e4':'#dce0de');
-box(3,.025,33,0,.04,-.5,'#c5ccca');box(32,.03,2.8,0,.045,-1,'#c5ccca');
+
+const bounds=CENTER_PLAN.bounds;
+function onFloor(x,z){if(z<bounds.minZ||z>bounds.maxZ||x>bounds.maxX)return false;return x>=(z<-.3?-18:z<3.9?-10.8:-14.4)}
+const outline=[[-18,-8.5],[18,-8.5],[18,8.8],[-14.4,8.8],[-14.4,3.9],[-10.8,3.9],[-10.8,-.3],[-18,-.3]];
+const floorShape=new THREE.Shape();outline.forEach(([x,z],i)=>i?floorShape.lineTo(x,-z):floorShape.moveTo(x,-z));floorShape.closePath();
+const tileCanvas=document.createElement('canvas');tileCanvas.width=tileCanvas.height=128;const tileContext=tileCanvas.getContext('2d');tileContext.fillStyle='#e5e8e6';tileContext.fillRect(0,0,128,128);tileContext.strokeStyle='#ccd2cf';tileContext.lineWidth=2;tileContext.strokeRect(0,0,128,128);const tiles=new THREE.CanvasTexture(tileCanvas);tiles.wrapS=tiles.wrapT=THREE.RepeatWrapping;tiles.colorSpace=THREE.SRGBColorSpace;
+const tileMat=new THREE.MeshStandardMaterial({color:'#ffffff',map:tiles,roughness:1});
+const floor=new THREE.Mesh(new THREE.ExtrudeGeometry(floorShape,{depth:.35,bevelEnabled:false}),[tileMat,mats.green]);floor.rotation.x=-Math.PI/2;floor.position.y=-.35;floor.receiveShadow=true;lobby.add(floor);
+box(65,.12,45,0,-.65,0,'#dde7e1');
+box(28,.02,2.7,-3,.015,-2,'#d5ddda');
 const clickable=[];const roomClickable=[];let activeRoom=null,seated=false,destination=null,seatAfterMove=false;const roomPos=new Map();
 function register(object,type,def=null,list=clickable){object.userData.action={type,def};list.push(object)}
 function sitPose(p,on){p.legs.forEach(l=>l.rotation.x=on?-Math.PI/2:0);p.arms.forEach(l=>l.rotation.x=on?-.3:0)}
@@ -55,27 +63,42 @@ if(def.id==='education'){box(3.5,1.7,.08,0,2.5,-4.3,mats.white);box(3.2,1.4,.06,
 if(detailed){register(visitorChair,'seat',def,roomClickable);register(employee.g,'talk',def,roomClickable);register(tag,'talk',def,roomClickable);const seatTag=label('방문자 의자',0,1.3,2.9,'#305d4e',2.3);seatTag.material.toneMapped=false;register(seatTag,'seat',def,roomClickable)}
 }
 
-const layout={general:{x:0,z:-11},trauma:{x:-13,z:-5},environment:{x:-13,z:-15},cardio:{x:5.5,z:-1.5,doorX:-2.2},muscle:{x:13,z:-13},education:{x:13,z:8,doorX:3.3}};
-defs.forEach(def=>{const pos=layout[def.id];if(!pos){roomPos.set(def.id,{x:0,z:0});return}roomPos.set(def.id,pos);const group=new THREE.Group();group.position.set(pos.x,0,pos.z);lobby.add(group);buildRoot=group;roomDecor(def,false);const name=def.id==='environment'?'작업환경상담실 · 가상':def.name;const sign=label(name,pos.doorX||0,3.04,4.64,'#305d4e',3.7);sign.material.toneMapped=false;register(sign,'enter',def);const doorway=box(2.4,2,.8,pos.doorX||0,1,4.5,new THREE.MeshBasicMaterial({visible:false}));register(doorway,'enter',def);buildRoot=lobby});
-// Reception faces the entrance; side corridors lead beyond it to the consultation rooms.
-box(7,1.2,1.5,0,.6,6,mats.white);box(7.3,.12,1.7,0,1.3,6,mats.white);for(const x of [-1.7,1.7]){box(1.4,.65,.1,x,1.65,5.8,mats.dark);box(.1,.35,.1,x,1.3,5.8,mats.dark)}
-const receptionist=person('#f2f4f1');receptionist.g.position.set(0,0,4.6);const receptionHit=box(7,2.3,2,0,1,6,new THREE.MeshBasicMaterial({visible:false}));register(receptionHit,'facility',{id:'reception'});const receptionLabel=label('접수데스크',0,3.5,6,'#305d4e',4);receptionLabel.material.toneMapped=false;register(receptionLabel,'facility',{id:'reception'});
-addDevice('bloodpressure',-6.6,8);addDevice('bloodpressure',4.6,7.8);
-deviceTag('자동혈압계','bloodpressure',-6.6,8);deviceTag('자동혈압계','bloodpressure',4.6,7.8);
-addDevice('coffee',-7.4,3.6);addDevice('water',-5.8,3.6);deviceTag('커피 · 정수기','coffee',-7,3.6);
-const waiting=chair(-9.5,11.3,mat('#deded2'));waiting.scale.x=2.2;waiting.rotation.y=Math.PI/2;
-const glass= new THREE.MeshStandardMaterial({color:'#b6d2d1',transparent:true,opacity:.25,roughness:.2});
-for(const x of [-2,2]){box(3.8,2.8,.08,x,1.45,16,glass);box(.08,3.1,.16,x<0?-4:4,1.5,16,mats.dark)}
-box(8.5,.3,.3,0,3.2,16,mats.dark);const entranceLabel=label('대전근로자건강센터 · 입구',0,3.7,16,'#305d4e',7);entranceLabel.material.toneMapped=false;entranceLabel.userData.mapOnly=true;
-for(const [x,z] of [[-18,15],[18,15],[-18,-18],[18,-18]])plant(x,z,1.2);
+const layout=CENTER_PLAN.rooms;
 
-// Enclosed surfaces are hidden only for the optional floor-plan view.
-for(const x of [-18.6,18.6])indoorParts.push(box(.18,4.2,37,x,2.1,-1.5,mats.white));
-indoorParts.push(box(37,4.2,.18,0,2.1,-20,mats.white));
-for(const x of [-11.4,11.4])indoorParts.push(box(14.4,4.2,.18,x,2.1,17,mats.white));
-const lobbyRoof=box(37,.12,37,0,4.5,-1.5,new THREE.MeshBasicMaterial({color:'#e7e9e7'}));lobbyRoof.castShadow=false;indoorParts.push(lobbyRoof);
-for(let x=-12;x<=12;x+=6)for(let z=-14;z<=12;z+=6){const light=box(2.2,.05,.65,x,4.38,z,new THREE.MeshBasicMaterial({color:'#ffffff'}));light.castShadow=false;indoorParts.push(light)}
-buildRoot=scene;const avatar=person('#d58a91');avatar.g.position.set(0,0,11);avatar.g.rotation.y=Math.PI;avatar.g.traverse(o=>{if(o.isMesh)o.castShadow=false});let equipmentPose=null;
+defs.forEach(def=>{const pos=layout[def.id];if(!pos){roomPos.set(def.id,{portal:{x:-7,z:4,nx:0,nz:1}});return}
+const portal=planPortal(pos);roomPos.set(def.id,{...pos,portal});const group=new THREE.Group();group.position.set(pos.x,0,pos.z);if(pos.side==='left'){group.rotation.y=-Math.PI/2;group.scale.set(pos.depth/10,1,pos.width/9)}else group.scale.set(pos.width/10,1,pos.depth/9);
+lobby.add(group);buildRoot=group;roomDecor(def,false);
+const name=pos.label||def.name;const sign=label(name,pos.doorX||0,3.04,4.64,'#305d4e',pos.side==='left'?4.5:4);sign.material.toneMapped=false;register(sign,'enter',def);const doorway=box(2.4,2,.8,pos.doorX||0,1,4.5,new THREE.MeshBasicMaterial({visible:false}));register(doorway,'enter',def);buildRoot=lobby});
+// The public lobby and the rear corridor meet through the passage left of reception.
+const desk=CENTER_PLAN.reception;
+box(desk.width,1.2,1,desk.x,.6,desk.z,mats.white);box(desk.width+.15,.12,1.12,desk.x,1.3,desk.z,mats.white);
+for(const x of [-3.4,0,3.4]){box(1.4,.65,.1,x,1.65,desk.z-.15,mats.dark);box(.1,.35,.1,x,1.3,desk.z-.15,mats.dark)}
+const receptionist=person('#f2f4f1');receptionist.g.position.set(0,0,desk.z-1.1);
+register(box(desk.width,2.3,1.15,desk.x,1,desk.z,new THREE.MeshBasicMaterial({visible:false})),'facility',{id:'reception'});
+const receptionLabel=label('접수데스크',desk.x,3.1,desk.z,'#305d4e',4);receptionLabel.material.toneMapped=false;register(receptionLabel,'facility',{id:'reception'});
+box(11.3,2.8,.15,0,1.4,-.3,mats.white);
+const f=CENTER_PLAN.facilities;
+for(const key of ['leftBP','rightBP'])addDevice('bloodpressure',f[key].x,f[key].z);
+deviceTag('자동혈압계','bloodpressure',f.leftBP.x,f.leftBP.z);deviceTag('자동혈압계','bloodpressure',f.rightBP.x,f.rightBP.z);
+addDevice('coffee',f.coffee.x,f.coffee.z);addDevice('water',f.water.x,f.water.z);
+deviceTag('커피머신 · 정수기','coffee',f.coffee.x,1);
+const sofaMat=mat('#dfddd0'),cushionMat=mat('#e9e6d9');
+function sofaSection(w,d,x,z){box(w,.34,d,x,.5,z,sofaMat);box(w,.3,d*.83,x,.78,z+.04,cushionMat);for(const sx of [-w/2+.15,w/2-.15])box(.15,.35,d-.15,x+sx,.2,z,mats.wood)}
+sofaSection(6.8,1.35,-10.5,7.5);box(6.8,1,.22,-10.5,1.15,8.15,sofaMat);
+sofaSection(1.35,3.4,-13.25,6.2);box(.22,1,3.4,-13.9,1.15,6.2,sofaMat);
+for(const x of [-12.8,-11.2,-9.6,-8])box(.06,.01,1.1,x,.94,7.5,sofaMat);
+const wt=f.waitingTable;box(2.7,.65,1.3,wt.x,.35,wt.z,'#6f9ca8');box(2.8,.1,1.4,wt.x,.73,wt.z,'#526d74');for(const x of [-.7,0,.7])box(.45,.025,.65,wt.x+x,.8,wt.z,mats.white);
+label('대기실',-10.4,2.4,7,'#305d4e',3);
+const ent=CENTER_PLAN.entrance,glass=new THREE.MeshStandardMaterial({color:'#b6d2d1',transparent:true,opacity:.2,roughness:.2});
+for(const x of [ent.x-1,ent.x+1])box(1.9,2.8,.08,x,1.45,ent.z,glass);
+box(4.3,.18,.2,ent.x,3.1,ent.z,mats.dark);const entranceLabel=label('센터 입구',ent.x,3.5,ent.z,'#305d4e',4);entranceLabel.material.toneMapped=false;entranceLabel.userData.mapOnly=true;
+// The indented left outline follows the sketch around the waiting area and beverage counter.
+for(const [w,d,x,z] of [[.16,4.2,-10.8,1.8],[7.2,.16,-14.4,-.3],[.16,4.9,-14.4,6.35]]){
+box(w,.75,d,x,.375,z,mats.white);indoorParts.push(box(w,2.65,d,x,2.075,z,mats.white))}
+for(const [w,d,x,z] of [[.16,17.3,18,0.15],[36,.16,0,-8.5],[9.2,.16,-9.8,8.8],[19.2,.16,8.4,8.8]])indoorParts.push(box(w,3.8,d,x,1.9,z,mats.white));
+const lobbyRoof=new THREE.Mesh(new THREE.ShapeGeometry(floorShape),new THREE.MeshBasicMaterial({color:'#e7e9e7',side:THREE.DoubleSide}));lobbyRoof.rotation.x=-Math.PI/2;lobbyRoof.position.y=4.5;lobby.add(lobbyRoof);indoorParts.push(lobbyRoof);
+for(let x=-12;x<=15;x+=6)for(let z=-6;z<=6;z+=4)if(onFloor(x,z)){const light=box(2,.05,.65,x,4.38,z,new THREE.MeshBasicMaterial({color:'#ffffff'}));light.castShadow=false;indoorParts.push(light)}
+buildRoot=scene;const avatar=person('#d58a91');avatar.g.position.set(CENTER_PLAN.entrance.x,0,4);avatar.g.rotation.y=Math.PI;avatar.g.traverse(o=>{if(o.isMesh)o.castShadow=false});let equipmentPose=null;
 const marker=new THREE.Mesh(new THREE.RingGeometry(.35,.44,32),new THREE.MeshBasicMaterial({color:'#397b62',side:THREE.DoubleSide}));marker.rotation.x=-Math.PI/2;marker.position.y=.15;marker.visible=false;scene.add(marker);
 const desiredCam=camera.position.clone(),desiredLook=new THREE.Vector3();const keys=new Set(),ray=new THREE.Raycaster(),pointer=new THREE.Vector2(),ground=new THREE.Plane(new THREE.Vector3(0,1,0),0);let last=performance.now(),moving=false,initial=true;
 function notifySeat(){document.querySelector('#sit').setAttribute('aria-pressed',String(seated));document.dispatchEvent(new CustomEvent('counsel-seat-change',{detail:{seated:seated&&!equipmentPose}}))}
@@ -83,18 +106,19 @@ function stand(){if(!seated)return;equipmentPose=null;avatar.g.rotation.x=0;seat
 function seat(){if(!activeRoom)return;equipmentPose=null;avatar.g.rotation.x=0;destination=null;seatAfterMove=false;marker.visible=false;keys.clear();seated=true;avatar.g.position.set(0,.13,2);avatar.g.rotation.y=Math.PI;sitPose(avatar,true);status.textContent='방문자 의자에 앉았어요.';notifySeat();resize()}
 function cleanupInterior(){for(const list of [indoorParts,worldLabels])for(let i=list.length-1;i>=0;i--)if(list[i].parent===interior)list.splice(i,1);const ownedMaterials=new Set();interior.traverse(o=>{o.geometry?.dispose();if(o.material&&!Object.values(mats).includes(o.material))ownedMaterials.add(o.material)});for(const m of ownedMaterials){m.map?.dispose();m.dispose()}interior.clear();roomClickable.length=0}
 function enter(def){initial=true;pathQueue=[];pathRequest++;doorCooldown=performance.now()+1200;equipmentPose=null;avatar.g.rotation.x=0;if(document.querySelector('dialog[open]'))document.querySelector('dialog[open]').close();destination=null;marker.visible=false;keys.clear();seated=false;sitPose(avatar,false);activeRoom=def;lobby.visible=false;interior.visible=true;cleanupInterior();buildRoot=interior;roomDecor(def,true);buildRoot=scene;avatar.g.position.set(layout[def.id]?.doorX||0,0,3.7);avatar.g.rotation.y=Math.PI;zoom=1;angle=0;document.body.dataset.room=def.id;document.querySelectorAll('[data-enter-room]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.enterRoom===def.id)));document.dispatchEvent(new CustomEvent('counsel-room-change',{detail:{room:def,seated:false}}));notifySeat();status.textContent=def.name+'에 들어왔어요.';yaw=0;pitch=.15;rebuildNavigation();applyView();resize()}
-function leave(){if(!activeRoom)return;initial=true;pathQueue=[];pathRequest++;doorCooldown=performance.now()+1200;equipmentPose=null;avatar.g.rotation.x=0;const pos=roomPos.get(activeRoom.id)||{x:0,z:0};activeRoom=null;seated=false;destination=null;keys.clear();marker.visible=false;sitPose(avatar,false);lobby.visible=true;interior.visible=false;avatar.g.position.set(pos.x+(pos.doorX||0),0,pos.z+6);avatar.g.rotation.y=0;zoom=1;angle=0;document.body.dataset.room='lobby';document.querySelectorAll('[data-enter-room]').forEach(b=>b.setAttribute('aria-pressed','false'));document.dispatchEvent(new CustomEvent('counsel-room-change',{detail:{room:null,seated:false}}));notifySeat();status.textContent='다른 상담실도 천천히 둘러보세요.';yaw=0;rebuildNavigation();applyView();resize()}
+function leave(){if(!activeRoom)return;initial=true;pathQueue=[];pathRequest++;doorCooldown=performance.now()+1200;equipmentPose=null;avatar.g.rotation.x=0;const pos=roomPos.get(activeRoom.id)||{x:0,z:0};activeRoom=null;seated=false;destination=null;keys.clear();marker.visible=false;sitPose(avatar,false);lobby.visible=true;interior.visible=false;const portal=pos.portal||{x:-7,z:4,nx:0,nz:1};avatar.g.position.set(portal.x+portal.nx*1.5,0,portal.z+portal.nz*1.5);avatar.g.rotation.y=0;zoom=1;angle=0;document.body.dataset.room='lobby';document.querySelectorAll('[data-enter-room]').forEach(b=>b.setAttribute('aria-pressed','false'));document.dispatchEvent(new CustomEvent('counsel-room-change',{detail:{room:null,seated:false}}));notifySeat();status.textContent='다른 상담실도 천천히 둘러보세요.';yaw=pos.portal?.nx===-1?-Math.PI/2:0;rebuildNavigation();applyView();resize()}
 document.addEventListener('counsel-enter',e=>{const def=defs.find(d=>d.id===e.detail);if(def)enter(def)});document.addEventListener('counsel-leave',leave);document.addEventListener('counsel-seat',()=>equipmentPose?seat():seated?stand():seat());
 document.querySelector('#sit').onclick=()=>{if(activeRoom){seated?stand():seat()}else status.textContent='상담실에 들어가면 방문자 의자에 앉을 수 있어요.'};
 
-function isBlocked(x,z,r=.3){return obstacles.some(b=>x>b.min.x-r&&x<b.max.x+r&&z>b.min.z-r&&z<b.max.z+r)}
+function isBlocked(x,z,r=.3){if(!activeRoom&&!onFloor(x,z))return true;return obstacles.some(b=>x>b.min.x-r&&x<b.max.x+r&&z>b.min.z-r&&z<b.max.z+r)}
 function rebuildNavigation(){
 renderer.shadowMap.needsUpdate=true;
 const root=activeRoom?interior:lobby;root.updateMatrixWorld(true);obstacles=[];cameraSolids=[];
 root.traverse(o=>{if(!o.isMesh||o.material?.visible===false)return;const bounds=new THREE.Box3().setFromObject(o);if(bounds.max.y>.35&&bounds.min.y<2&&!o.material.transparent)obstacles.push(bounds);if(bounds.max.y>.35&&bounds.min.y<4.6&&!o.material.transparent)cameraSolids.push(o)});
-const gym=activeRoom?.id==='muscle';const minX=activeRoom?(gym?-7.5:-4.6):-18,minZ=activeRoom?(gym?-5.4:-4):-19,maxX=-minX,maxZ=activeRoom?(gym?5.9:4.9):16;
+const gym=activeRoom?.id==='muscle';const minX=activeRoom?(gym?-7.5:-4.6):bounds.minX,minZ=activeRoom?(gym?-5.4:-4):bounds.minZ,maxX=-minX,maxZ=activeRoom?(gym?5.9:4.9):bounds.maxZ;
 const step=.4,width=Math.floor((maxX-minX)/step)+1,height=Math.floor((maxZ-minZ)/step)+1;const grid=Array.from({length:height},()=>Array(width).fill(0));
 for(const b of obstacles){const x0=Math.max(0,Math.floor((b.min.x-.3-minX)/step)),x1=Math.min(width-1,Math.ceil((b.max.x+.3-minX)/step)),z0=Math.max(0,Math.floor((b.min.z-.3-minZ)/step)),z1=Math.min(height-1,Math.ceil((b.max.z+.3-minZ)/step));for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++)grid[z][x]=1}
+if(!activeRoom)for(let z=0;z<height;z++)for(let x=0;x<width;x++)if(!onFloor(minX+x*step,minZ+z*step))grid[z][x]=1;
 navGrid={grid,minX,minZ,step,width,height};pathfinder=new window.EasyStar.js();pathfinder.setGrid(grid);pathfinder.setAcceptableTiles([0]);pathfinder.enableDiagonals();pathfinder.disableCornerCutting();pathfinder.setIterationsPerCalculation(10000);pathfinder.enableSync();
 }
 function moveTo(x,z){
@@ -132,5 +156,5 @@ else{const distance=(activeRoom?(seated?2.2:3):4.5)/zoom;desiredCam.copy(a).add(
 function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.fov=viewMode==='eye'?70/zoom:viewMode==='map'?40:62;if(viewMode==='map'){const f=camera.aspect<.85?1.8:camera.aspect<1.2?1.35:1.12;if(activeRoom){const offset=(activeRoom.id==='muscle'?new THREE.Vector3(13,12,17):new THREE.Vector3(9,9,13)).applyAxisAngle(new THREE.Vector3(0,1,0),angle).multiplyScalar((camera.aspect<.85?1.42:1.1)/zoom);desiredLook.set(0,1,0);desiredCam.copy(offset).add(desiredLook)}else{desiredLook.set(0,0,0);desiredCam.copy(base).applyAxisAngle(new THREE.Vector3(0,1,0),angle).multiplyScalar(f/zoom)}}else updateWalkCamera();camera.updateProjectionMatrix();if(initial){camera.position.copy(desiredCam);look.copy(desiredLook);initial=false}}new ResizeObserver(resize).observe(host);
 rebuildNavigation();applyView();resize();
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
-function tick(now){requestAnimationFrame(tick);const dt=Math.min((now-last)/1000,.05);last=now;let dx=0,dz=0;moving=false;if(!document.querySelector('dialog[open]')){if(keys.size){const horizontal=Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a'));const vertical=Number(keys.has('ArrowDown')||keys.has('s'))-Number(keys.has('ArrowUp')||keys.has('w'));const v=new THREE.Vector3(horizontal,0,vertical).applyAxisAngle(new THREE.Vector3(0,1,0),viewMode==='map'?Math.PI/4+angle:yaw);dx=v.x;dz=v.z}else if(destination){dx=destination.x-avatar.g.position.x;dz=destination.z-avatar.g.position.z;if(Math.hypot(dx,dz)<.12){destination=pathQueue.shift()||null;if(!destination)marker.visible=false;dx=dz=0}}if(!seated&&Math.hypot(dx,dz)>.01){moving=true;const len=Math.hypot(dx,dz),step=Math.min(3.5*dt,len),maxX=activeRoom?(activeRoom.id==='muscle'?7.2:4.3):18;const nx=THREE.MathUtils.clamp(avatar.g.position.x+dx/len*step,-maxX,maxX),nz=THREE.MathUtils.clamp(avatar.g.position.z+dz/len*step,activeRoom?(activeRoom.id==='muscle'?-5.4:-3.9):-19,activeRoom?(activeRoom.id==='muscle'?5.9:4.9):16);if(!isBlocked(nx,avatar.g.position.z))avatar.g.position.x=nx;if(!isBlocked(avatar.g.position.x,nz))avatar.g.position.z=nz;avatar.g.rotation.y=Math.atan2(dx,dz)}}if(!seated){avatar.legs.forEach((p,i)=>p.rotation.x=moving&&!reduced?Math.sin(now*.012+i*Math.PI)*.5:0);avatar.arms.forEach((p,i)=>p.rotation.x=moving&&!reduced?-Math.sin(now*.012+i*Math.PI)*.35:0)}if(moving&&now>doorCooldown){if(activeRoom){if(avatar.g.position.z>(activeRoom.id==='muscle'?5.65:4.55)&&Math.abs(avatar.g.position.x-(layout[activeRoom.id]?.doorX||0))<1.05)leave()}else{for(const def of defs){const p=layout[def.id];if(p&&Math.hypot(avatar.g.position.x-(p.x+(p.doorX||0)),avatar.g.position.z-(p.z+4.5))<.95){enter(def);break}}}}if(viewMode!=='map')updateWalkCamera();camera.position.lerp(desiredCam,reduced?1:Math.min(1,dt*8));look.lerp(desiredLook,reduced?1:Math.min(1,dt*8));camera.lookAt(look);for(const tag of worldLabels){if(!tag.parent)continue;const position=new THREE.Vector3();tag.getWorldPosition(position);tag.visible=viewMode==='map'||(!tag.userData.mapOnly&&position.distanceTo(avatar.g.position)<15&&position.distanceTo(camera.position)>2);tag.scale.copy(tag.userData.labelScale).multiplyScalar(viewMode==='map'?1:.6)}renderer.render(scene,camera);document.body.dataset.worldReady='true';window.healthWorldState={x:avatar.g.position.x,z:avatar.g.position.z,seated,room:activeRoom?.id||'lobby',cameraDistance:camera.position.distanceTo(look),cameraX:camera.position.x,cameraY:camera.position.y,cameraZ:camera.position.z,lookX:look.x,lookY:look.y,lookZ:look.z,fov:camera.fov,pathRemaining:pathQueue.length+(destination?1:0),yaw,viewMode,equipmentPose,ready:true}}requestAnimationFrame(tick);status.textContent='입구 정면 접수데스크에서 산책을 시작해요.';
+function tick(now){requestAnimationFrame(tick);const dt=Math.min((now-last)/1000,.05);last=now;let dx=0,dz=0;moving=false;if(!document.querySelector('dialog[open]')){if(keys.size){const horizontal=Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a'));const vertical=Number(keys.has('ArrowDown')||keys.has('s'))-Number(keys.has('ArrowUp')||keys.has('w'));const v=new THREE.Vector3(horizontal,0,vertical).applyAxisAngle(new THREE.Vector3(0,1,0),viewMode==='map'?Math.PI/4+angle:yaw);dx=v.x;dz=v.z}else if(destination){dx=destination.x-avatar.g.position.x;dz=destination.z-avatar.g.position.z;if(Math.hypot(dx,dz)<.12){destination=pathQueue.shift()||null;if(!destination)marker.visible=false;dx=dz=0}}if(!seated&&Math.hypot(dx,dz)>.01){moving=true;const len=Math.hypot(dx,dz),step=Math.min(3.5*dt,len),maxX=activeRoom?(activeRoom.id==='muscle'?7.2:4.3):18;const nx=THREE.MathUtils.clamp(avatar.g.position.x+dx/len*step,-maxX,maxX),nz=THREE.MathUtils.clamp(avatar.g.position.z+dz/len*step,activeRoom?(activeRoom.id==='muscle'?-5.4:-3.9):bounds.minZ,activeRoom?(activeRoom.id==='muscle'?5.9:4.9):bounds.maxZ);if(!isBlocked(nx,avatar.g.position.z))avatar.g.position.x=nx;if(!isBlocked(avatar.g.position.x,nz))avatar.g.position.z=nz;avatar.g.rotation.y=Math.atan2(dx,dz)}}if(!seated){avatar.legs.forEach((p,i)=>p.rotation.x=moving&&!reduced?Math.sin(now*.012+i*Math.PI)*.5:0);avatar.arms.forEach((p,i)=>p.rotation.x=moving&&!reduced?-Math.sin(now*.012+i*Math.PI)*.35:0)}if(moving&&now>doorCooldown){if(activeRoom){if(avatar.g.position.z>(activeRoom.id==='muscle'?5.65:4.55)&&Math.abs(avatar.g.position.x-(layout[activeRoom.id]?.doorX||0))<1.05)leave()}else{for(const def of defs){const p=roomPos.get(def.id)?.portal;if(layout[def.id]&&p&&Math.hypot(avatar.g.position.x-p.x,avatar.g.position.z-p.z)<.8){enter(def);break}}}}if(viewMode!=='map')updateWalkCamera();camera.position.lerp(desiredCam,reduced?1:Math.min(1,dt*8));look.lerp(desiredLook,reduced?1:Math.min(1,dt*8));camera.lookAt(look);for(const tag of worldLabels){if(!tag.parent)continue;const position=new THREE.Vector3();tag.getWorldPosition(position);tag.visible=viewMode==='map'||(!tag.userData.mapOnly&&position.distanceTo(avatar.g.position)<15&&position.distanceTo(camera.position)>2);tag.scale.copy(tag.userData.labelScale).multiplyScalar(viewMode==='map'?1:.6)}renderer.render(scene,camera);document.body.dataset.worldReady='true';window.healthWorldState={x:avatar.g.position.x,z:avatar.g.position.z,seated,room:activeRoom?.id||'lobby',cameraDistance:camera.position.distanceTo(look),cameraX:camera.position.x,cameraY:camera.position.y,cameraZ:camera.position.z,lookX:look.x,lookY:look.y,lookZ:look.z,fov:camera.fov,pathRemaining:pathQueue.length+(destination?1:0),yaw,viewMode,equipmentPose,ready:true}}requestAnimationFrame(tick);status.textContent='입구 정면 접수데스크에서 산책을 시작해요.';
 }
