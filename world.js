@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {makeDevice} from './center-models.js?v=cardio-1';
 import {roundedGeometry,makeMaterials,makePerson,makeChair,makeTable,makePlant} from './center-visuals.js?v=natural-1';
-import {CENTER_PLAN,planPortal,CARDIO_EQUIPMENT} from './center-plan.js?v=cardio-1';
+import {CENTER_PLAN,planPortal,CARDIO_EQUIPMENT} from './center-plan.js?v=cardio-2';
 const host=document.querySelector('#world'),status=document.querySelector('#world-status');
 try { init(); } catch(e) { status.textContent='3D 공간을 불러오지 못했어요. 아래 체험 메뉴는 그대로 이용할 수 있습니다.';host.classList.add('failed');console.error(e); }
 function init(){

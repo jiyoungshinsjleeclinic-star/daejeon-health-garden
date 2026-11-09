@@ -29,6 +29,8 @@ for(const type of ['coffee','water','bloodpressure','inbody','bloodtest','bed','
  const device=makeDevice(type,0,0,{parent:new THREE.Group(),box,cylinder,sphere,mat,mats});finiteModel(device);
 }
 const devices=Object.fromEntries(CARDIO_EQUIPMENT.map(item=>[item.id,item]));
+assert(!devices.inbody);
+assert.deepEqual(devices.heightweight,{id:'heightweight',name:'신장·체중 측정기',x:-3.85,z:-3.1,y:0});
 assert(devices.bed.x>0&&devices.arterial.x>0&&devices.heightweight.x<0);
 for(const id of ['cholesterol','glucose','hba1c']){
  const item=devices[id];assert.equal(item.y,1.22);assert(Math.abs(item.x)<1.7&&Math.abs(item.z)<.65);
