@@ -27,7 +27,7 @@ function render(){
  }
  for(const action of node.actions||[]){
   const b=document.createElement('button');b.type='button';b.className='btn light';b.textContent=action.label;
-  b.onclick=()=>{dialog.close();if(['waiting','bloodpressure'].includes(action.action))document.dispatchEvent(new CustomEvent('reception-walk',{detail:action.action}));else document.dispatchEvent(new CustomEvent('counsel-enter',{detail:action.action}))};choices.append(b);
+  b.onclick=()=>{const destination=action.action==='waiting'&&nodeId==='firstDone'?'waiting-intake':action.action;dialog.close();if(['waiting','waiting-intake','bloodpressure'].includes(destination))document.dispatchEvent(new CustomEvent('reception-walk',{detail:destination}));else document.dispatchEvent(new CustomEvent('counsel-enter',{detail:destination}))};choices.append(b);
  }
  if(!node.choices?.length){const done=document.createElement('button');done.className='text-btn';done.textContent='대화 마치기';done.onclick=()=>dialog.close();choices.append(done)}
  list.scrollTop=list.scrollHeight;choices.querySelector('button')?.focus({preventScroll:true});

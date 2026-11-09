@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {INTAKE_SECTIONS,CONSENT_CHECK_ITEMS} from '../intake-items.js';
+import {WAITING_SOFA} from '../center-plan.js';
+const fields=INTAKE_SECTIONS.flatMap(s=>s.items);
+assert.deepEqual(fields,['성명','생년월일','회사명','근무형태','고용형태','업무구분','근무시간','진단 여부','치료 여부','가족력','흡연','음주','운동']);
+assert.equal(new Set(fields).size,13);assert(CONSENT_CHECK_ITEMS.some(t=>t.includes('동의 항목 체크')));
+assert(WAITING_SOFA.seat.x>-13.9&&WAITING_SOFA.seat.x<-7.1);assert(WAITING_SOFA.seat.z>6.95&&WAITING_SOFA.seat.z<7.5);
+assert(WAITING_SOFA.seat.z-.41+.1<6.825);
+assert(WAITING_SOFA.approach.x>-6.8);assert(WAITING_SOFA.approach.z<8.8);
+console.log('All 13 requested field labels, consent checkpoints, sofa seat and clear approach point: passed.');

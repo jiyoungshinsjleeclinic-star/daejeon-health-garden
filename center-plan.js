@@ -30,3 +30,9 @@ export const CARDIO_EQUIPMENT=[
  {id:'glucose',name:'간이혈당 측정기',x:-.43,z:.04,y:1.22},
  {id:'hba1c',name:'당화혈색소 측정기',x:1,z:-.03,y:1.22}
 ];
+
+export const WAITING_SOFA={
+ approach:{x:-6,z:7.1},
+ seat:{x:-7.9,y:.13,z:7.1},
+ nearbyRadius:3.5
+};
