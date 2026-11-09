@@ -81,7 +81,7 @@ box(11.3,2.8,.15,0,1.4,-.3,mats.white);
 const f=CENTER_PLAN.facilities;
 for(const key of ['leftBP','rightBP'])addDevice('bloodpressure',f[key].x,f[key].z);
 deviceTag('자동혈압계','bloodpressure',f.leftBP.x,f.leftBP.z);deviceTag('자동혈압계','bloodpressure',f.rightBP.x,f.rightBP.z);
-for(const type of ['coffee','water'])addDevice(type,f[type].x,f[type].z).rotation.y=Math.PI/2;
+for(const type of ['coffee','water'])addDevice(type,f[type].x,f[type].z).rotation.y=Math.PI;
 deviceTag('커피머신 · 정수기','coffee',f.coffee.x,1);
 const sofaMat=mat('#dfddd0'),cushionMat=mat('#e9e6d9');
 function sofaSection(w,d,x,z){box(w,.34,d,x,.5,z,sofaMat);box(w,.3,d*.83,x,.78,z+.04,cushionMat);for(const sx of [-w/2+.15,w/2-.15])box(.15,.35,d-.15,x+sx,.2,z,mats.wood)}
