@@ -53,9 +53,10 @@ table(0,0,3.4);box(.75,.04,.6,-.6,1.26,.1,mats.white);box(.35,.07,.55,.7,1.26,0,
 const employeeChair=chair(0,-2,mats.green),visitorChair=chair(0,2,mats.blue);visitorChair.rotation.y=Math.PI;
 const employee=person('#e8f3ef');employee.g.position.set(0,.13,-2);sitPose(employee,true);
 const tag=label('가상 안내 직원',0,2.9,-2,'#305d4e',2.8);tag.material.toneMapped=false;
-plant(-3.9,-3.1,.9);plant(def.id==='education'?-3.8:3.8,3.2,.8);
+if(def.id!=='general')plant(-3.9,-3.1,.9);plant(def.id==='education'?-3.8:3.8,3.2,.8);
 const shelf=box(2,1.8,.5,3.5,.9,-4.1,mats.wood);for(let i=0;i<5;i++)box(.22,.7,.35,2.8+i*.32,1.05,-4,mats.white);
-if((def.id==='cardio'||def.id==='general')&&detailed){addDevice('inbody',-3,-2.1,true);addDevice('bloodtest',3.1,-2.2,true);deviceTag('체성분 분석기','inbody',-3,-2.1,true);if(def.id==='cardio')addDevice('bloodpressure',3,1.8,true)}
+if(def.id==='cardio'&&detailed){addDevice('inbody',-3,-2.1,true);addDevice('bloodtest',3.1,-2.2,true);deviceTag('체성분 분석기','inbody',-3,-2.1,true);addDevice('bloodpressure',3,1.8,true)}
+if(def.id==='general')makeDevice('bed',-3,-2.1,{parent:buildRoot,box,cylinder,sphere,mat,mats});
 if(def.id==='muscle'&&detailed){for(let z=-5.8;z<6;z+=.5)box(15.9,.015,.025,0,.09,z,'#c5aa82');for(const [type,x,z,name] of [['bike',-5,-3.2,'실내 자전거'],['treadmill',-5,.5,'걷기 운동기구'],['ceragem',5,-2.5,'세라젬'],['massage',5,2,'안마기'],['weights',0,-4.6,'운동 소도구']]){addDevice(type,x,z,true);deviceTag(name,type,x,z,true)}}
 if(def.id==='environment'){box(1.6,1.1,.5,-3.3,.6,-1,mats.green);for(let i=0;i<3;i++)cylinder(.15,.4,-3.8+i*.45,1.4,-1,[mats.yellow,mats.blue,mats.white][i]);box(1.2,1,.05,.3,2.4,-4.35,mats.yellow)}
 if(def.id==='stress'||def.id==='trauma'){const sofa=chair(-3.1,-1.4,mat('#deded2'));sofa.scale.x=1.65;cylinder(.7,.6,-2.7,.32,.3,mats.white);plant(3,-2.5,1.2);box(1.7,1.1,.05,.3,2.4,-4.35,def.color)}
