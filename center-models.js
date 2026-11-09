@@ -3,6 +3,43 @@ import {compactMeshes} from './center-visuals.js?v=natural-1';
 export function makeDevice(type,x,z,{parent,box,cylinder,sphere,mat,mats}){
 const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const b=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,g),c=(r,h,x,y,z,m)=>cylinder(r,h,x,y,z,m,g),s=(r,x,y,z,m)=>sphere(r,x,y,z,m,g);const metal=new THREE.MeshStandardMaterial({color:'#b4bdc0',metalness:.8,roughness:.26}),black=mat('#252b2e'),blue=mat('#498eb5'),cream=mat('#bcbfb7');
 function ring(r,t,x,y,z,m){const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,28),m);o.position.set(x,y,z);g.add(o);return o}
+function cable(points,color='#747d83',radius=.015){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const o=new THREE.Mesh(new THREE.TubeGeometry(curve,18,radius,6,false),mat(color));g.add(o);return o}
+if(type==='heightweight'){
+ b(1.05,.13,1.15,0,.14,.1,mats.white);b(.85,.025,.92,0,.22,.1,black);
+ for(const sx of [-.24,.24])b(.17,.01,.48,sx,.239,.12,metal);
+ b(.17,2.65,.16,0,1.5,-.42,mats.white);b(.07,2.15,.018,0,1.45,-.326,metal);
+ for(let i=0;i<16;i++)b(i%4===0?.06:.03,.012,.01,.01,.6+i*.13,-.313,black);
+ b(.65,.08,.55,-.18,2.8,-.17,black);b(.19,.3,.06,.14,1.59,-.30,mats.white);b(.135,.15,.012,.14,1.63,-.26,mats.blue);
+}
+if(type==='arterial'){
+ b(1.05,.12,.9,0,.2,0,mats.white);
+ for(const sx of [-.42,.42])for(const sz of [-.32,.32]){const wheel=c(.1,.07,sx,.11,sz,black);wheel.rotation.x=Math.PI/2}
+ for(const sx of [-.4,.4])c(.025,1.55,sx,.94,-.27,metal);
+ for(const y of [.36,.73,1.05])b(.95,.07,.72,0,y,0,mats.white);
+ b(.72,.3,.48,0,.56,.03,black);b(.6,.13,.035,0,.58,.29,metal);
+ const head=b(.95,.35,.64,0,1.31,.02,mats.white);head.rotation.x=.13;
+ b(.62,.2,.027,-.09,1.34,.365,black);b(.5,.12,.012,-.09,1.36,.385,mats.blue);
+ for(const [x,color] of [[.33,'#76988c'],[.33,'#b59c62']])c(.035,.018,x,1.51,color==='#76988c'?.06:.2,mat(color));
+ b(1.05,.13,.1,0,1.97,-.27,metal);
+ for(const [sx,color] of [[-.25,'#73889d'],[.25,'#a27e71']]){
+  const cuff=b(.3,.4,.25,sx,1.77,-.19,mat(color));cuff.rotation.z=sx;
+  cable([[sx,1.78,-.1],[sx*.9,1.2,.42],[sx,.8,.45],[sx,1.29,.22]],color);
+ }
+}
+if(type==='cholesterol'||type==='glucose'){
+ const lipid=type==='cholesterol',w=lipid?.4:.27,d=lipid?.69:.48;
+ b(w,.105,d,0,.0525,0,lipid?mats.white:mat('#263241'));
+ b(w*.83,.017,d*.7,0,.134,-.03,mat('#29374a'));
+ b(w*.69,.012,d*.39,0,.148,-d*.12,mat('#93a7ae'));
+ for(const sx of [-w*.25,0,w*.25])c(.025,.012,sx,.151,d*.22,mats.white);
+ b(.06,.015,.04,0,.04,d*.51,black);
+}
+if(type==='hba1c'){
+ b(.92,.56,.82,0,.28,0,mats.white);b(.83,.53,.045,0,.32,.427,black);
+ b(.65,.32,.018,0,.39,.46,mat('#738e99'));b(.28,.045,.025,0,.12,.46,black);
+ b(.54,.025,.44,0,.603,-.06,mats.white);b(.18,.02,.13,0,.621,-.06,metal);
+ for(let i=0;i<4;i++)b(.013,.08,.045,.467,.22+i*.055,-.12,metal);
+}
 if(type==='bloodpressure'){b(.8,.1,.7,0,.05,0,metal);c(.09,.85,0,.5,0,metal);b(1.3,.1,.9,0,.95,0,mats.white);b(.9,.35,.65,0,1.2,0,mats.white);ring(.26,.12,.18,1.42,.08,blue);b(.32,.25,.04,-.31,1.45,.34,black);b(.25,.17,.02,-.31,1.47,.37,mats.blue);c(.3,.12,0,.55,1,mats.dark)}
 if(type==='coffee'){b(1.3,.8,1,0,.4,0,mats.white);b(.95,1.35,.7,0,1.48,0,black);b(.65,.5,.05,0,1.82,.38,mats.dark);b(.45,.1,.2,0,1.4,.45,metal);b(.75,.06,.5,0,.94,.28,black);c(.13,.22,0,1.08,.5,mats.white);b(.4,.18,.5,0,2.22,0,black)}
 if(type==='water'){b(.95,2.35,.85,0,1.2,0,mats.white);b(.7,.65,.05,0,1.68,.45,mats.blue);b(.65,.4,.15,0,.9,.4,metal);b(.7,.05,.45,0,.65,.45,metal)}

@@ -20,3 +20,14 @@ export function planPortal(room){
   ?{x:room.x-room.width/2,z:room.z+(room.doorX||0)*room.depth/10,nx:-1,nz:0}
   :{x:room.x+(room.doorX||0)*room.width/10,z:room.z+room.depth/2,nx:0,nz:1};
 }
+
+// Local room coordinates; tabletop instruments sit above the consultation desk.
+export const CARDIO_EQUIPMENT=[
+ {id:'heightweight',name:'신장·체중 측정기',x:-3.85,z:-3.1,y:0},
+ {id:'inbody',name:'체성분 분석기',x:-3.1,z:-.8,y:0},
+ {id:'bed',name:'검은 매트 침대',x:3.65,z:.3,y:0},
+ {id:'arterial',name:'동맥경화 검사기',x:2.55,z:-2.65,y:0},
+ {id:'cholesterol',name:'콜레스테롤 측정기',x:-1.08,z:.03,y:1.22},
+ {id:'glucose',name:'간이혈당 측정기',x:-.43,z:.04,y:1.22},
+ {id:'hba1c',name:'당화혈색소 측정기',x:1,z:-.03,y:1.22}
+];

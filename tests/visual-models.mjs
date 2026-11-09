@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
 import {roundedGeometry,compactMeshes,makePerson,makeChair,makeTable,makePlant} from '../center-visuals.js';
 import {makeDevice} from '../center-models.js';
+import {CARDIO_EQUIPMENT} from '../center-plan.js';
 
 const mat=color=>new THREE.MeshStandardMaterial({color});
 const mats=Object.fromEntries(['white','wood','green','dark','blue','skin','metal','leather','fabric','leaf','yellow'].map(name=>[name,mat('#aabbcc')]));
@@ -24,8 +25,13 @@ assert.equal(person.legs.length,2);assert.equal(person.arms.length,2);
 for(const leg of person.legs){assert(leg.parent===person.g);leg.rotation.x=-Math.PI/2;leg.userData.knee.rotation.x=Math.PI/2}
 finiteModel(person.g);
 for(const build of [p=>makeChair(0,0,mats.fabric,p,mats),p=>makeTable(0,0,2.5,p,mats),p=>makePlant(0,0,1,p,mats)])finiteModel(build(new THREE.Group()));
-for(const type of ['coffee','water','bloodpressure','inbody','bloodtest','bed','massage','ceragem','bike','treadmill','weights']){
+for(const type of ['coffee','water','bloodpressure','inbody','bloodtest','bed','massage','ceragem','bike','treadmill','weights','heightweight','arterial','cholesterol','glucose','hba1c']){
  const device=makeDevice(type,0,0,{parent:new THREE.Group(),box,cylinder,sphere,mat,mats});finiteModel(device);
+}
+const devices=Object.fromEntries(CARDIO_EQUIPMENT.map(item=>[item.id,item]));
+assert(devices.bed.x>0&&devices.arterial.x>0&&devices.heightweight.x<0);
+for(const id of ['cholesterol','glucose','hba1c']){
+ const item=devices[id];assert.equal(item.y,1.22);assert(Math.abs(item.x)<1.7&&Math.abs(item.z)<.65);
 }
 const group=new THREE.Group();box(1,1,1,-2,.5,0,mats.white,group);box(1,1,1,2,.5,0,mats.white,group);
 const before=finiteModel(group);compactMeshes(group);const after=finiteModel(group);assert.equal(group.children.length,1);assert(before.min.distanceTo(after.min)<1e-5&&before.max.distanceTo(after.max)<1e-5);

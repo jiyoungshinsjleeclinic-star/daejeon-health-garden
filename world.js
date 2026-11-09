@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
-import {makeDevice} from './center-models.js?v=natural-1';
+import {makeDevice} from './center-models.js?v=cardio-1';
 import {roundedGeometry,makeMaterials,makePerson,makeChair,makeTable,makePlant} from './center-visuals.js?v=natural-1';
-import {CENTER_PLAN,planPortal} from './center-plan.js';
+import {CENTER_PLAN,planPortal,CARDIO_EQUIPMENT} from './center-plan.js?v=cardio-1';
 const host=document.querySelector('#world'),status=document.querySelector('#world-status');
 try { init(); } catch(e) { status.textContent='3D 공간을 불러오지 못했어요. 아래 체험 메뉴는 그대로 이용할 수 있습니다.';host.classList.add('failed');console.error(e); }
 function init(){
@@ -35,7 +35,7 @@ box(28,.02,2.7,-3,.015,-2,'#d5ddda');
 const clickable=[];const roomClickable=[];let activeRoom=null,seated=false,destination=null,seatAfterMove=false;const roomPos=new Map();
 function register(object,type,def=null,list=clickable){object.userData.action={type,def};list.push(object)}
 function sitPose(p,on){p.legs.forEach(l=>{l.rotation.x=on?-Math.PI/2:0;if(l.userData.knee)l.userData.knee.rotation.x=on?Math.PI/2:0});p.arms.forEach(l=>l.rotation.x=on?-.3:0)}
-function addDevice(type,x,z,detailed=false){const o=makeDevice(type,x,z,{parent:buildRoot,box,cylinder,sphere,mat,mats});register(o,'facility',{id:type},detailed?roomClickable:clickable);return o}
+function addDevice(type,x,z,detailed=false,y=0){const o=makeDevice(type,x,z,{parent:buildRoot,box,cylinder,sphere,mat,mats});o.position.y=y;register(o,'facility',{id:type},detailed?roomClickable:clickable);return o}
 function deviceTag(name,type,x,z,detailed=false){const sign=label(name,x,2.65,z,'#305d4e',2.8);sign.material.toneMapped=false;register(sign,'facility',{id:type},detailed?roomClickable:clickable)}
 function roomDecor(def,detailed){
 const gym=def.id==='muscle'&&detailed,w=gym?16:10,d=gym?12:9,doorX=layout[def.id]?.doorX||0;
@@ -50,13 +50,13 @@ doorLeaf.userData.doorLeaf=true;
 const roof=box(w,.12,d,0,3.65,0,new THREE.MeshBasicMaterial({color:'#e7e9e7'}));roof.castShadow=false;indoorParts.push(roof);for(const x of [-2,2]){const light=box(1.8,.04,.6,x,3.55,-1,new THREE.MeshBasicMaterial({color:'#ffffff'}));light.castShadow=false;indoorParts.push(light)}
 box(2.4,.07,.8,doorX,.1,d/2-.1,mats.wood);box(2.6,.05,2.5,0,.12,2.4,def.color);
 box(2.5,1.4,.06,-2.9,2.3,-4.37,mats.blue);box(.08,1.5,.12,-2.9,2.3,-4.28,mats.white);box(2.6,.1,.3,-2.9,1.55,-4.2,mats.wood);
-table(0,0,3.4);box(.75,.04,.6,-.6,1.26,.1,mats.white);box(.35,.07,.55,.7,1.26,0,mats.blue);
+table(0,0,3.4);if(def.id!=='cardio'){box(.75,.04,.6,-.6,1.26,.1,mats.white);box(.35,.07,.55,.7,1.26,0,mats.blue)}
 const employeeChair=chair(0,-2,mats.green),visitorChair=chair(0,2,mats.blue);visitorChair.rotation.y=Math.PI;
 const employee=person('#e8f3ef');employee.g.position.set(0,.13,-2);sitPose(employee,true);
 const tag=label('가상 안내 직원',0,2.9,-2,'#305d4e',2.8);tag.material.toneMapped=false;
-if(def.id!=='general')plant(-3.9,-3.1,.9);plant(def.id==='education'?-3.8:3.8,3.2,.8);
+if(!['general','cardio'].includes(def.id))plant(-3.9,-3.1,.9);plant(def.id==='education'?-3.8:3.8,3.2,.8);
 const shelf=box(2,1.8,.5,3.5,.9,-4.1,mats.wood);for(let i=0;i<5;i++)box(.22,.7,.35,2.8+i*.32,1.05,-4,mats.white);
-if(def.id==='cardio'&&detailed){addDevice('inbody',-3,-2.1,true);addDevice('bloodtest',3.1,-2.2,true);deviceTag('체성분 분석기','inbody',-3,-2.1,true);addDevice('bloodpressure',3,1.8,true)}
+if(def.id==='cardio'){for(const item of CARDIO_EQUIPMENT)addDevice(item.id,item.x,item.z,detailed,item.y);if(detailed){deviceTag('신장·체중 측정기','heightweight',-3.85,-3.1,true);deviceTag('동맥경화 검사기','arterial',2.55,-2.65,true)}}
 if(def.id==='general')makeDevice('bed',-3,-2.1,{parent:buildRoot,box,cylinder,sphere,mat,mats});
 if(def.id==='muscle'&&detailed){for(let z=-5.8;z<6;z+=.5)box(15.9,.015,.025,0,.09,z,'#c5aa82');for(const [type,x,z,name] of [['bike',-5,-3.2,'실내 자전거'],['treadmill',-5,.5,'걷기 운동기구'],['ceragem',5,-2.5,'세라젬'],['massage',5,2,'안마기'],['weights',0,-4.6,'운동 소도구']]){addDevice(type,x,z,true);deviceTag(name,type,x,z,true)}}
 if(def.id==='environment'){box(1.6,1.1,.5,-3.3,.6,-1,mats.green);for(let i=0;i<3;i++)cylinder(.15,.4,-3.8+i*.45,1.4,-1,[mats.yellow,mats.blue,mats.white][i]);box(1.2,1,.05,.3,2.4,-4.35,mats.yellow)}
