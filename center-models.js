@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
+import {compactMeshes} from './center-visuals.js?v=natural-1';
 export function makeDevice(type,x,z,{parent,box,cylinder,sphere,mat,mats}){
-const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const b=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,g),c=(r,h,x,y,z,m)=>cylinder(r,h,x,y,z,m,g),s=(r,x,y,z,m)=>sphere(r,x,y,z,m,g);const metal=mat('#b4bdc0'),black=mat('#333b40'),blue=mat('#498eb5'),cream=mat('#c2c2b5');
+const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const b=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,g),c=(r,h,x,y,z,m)=>cylinder(r,h,x,y,z,m,g),s=(r,x,y,z,m)=>sphere(r,x,y,z,m,g);const metal=new THREE.MeshStandardMaterial({color:'#b4bdc0',metalness:.8,roughness:.26}),black=mat('#252b2e'),blue=mat('#498eb5'),cream=mat('#bcbfb7');
 function ring(r,t,x,y,z,m){const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,28),m);o.position.set(x,y,z);g.add(o);return o}
 if(type==='bloodpressure'){b(.8,.1,.7,0,.05,0,metal);c(.09,.85,0,.5,0,metal);b(1.3,.1,.9,0,.95,0,mats.white);b(.9,.35,.65,0,1.2,0,mats.white);ring(.26,.12,.18,1.42,.08,blue);b(.32,.25,.04,-.31,1.45,.34,black);b(.25,.17,.02,-.31,1.47,.37,mats.blue);c(.3,.12,0,.55,1,mats.dark)}
 if(type==='coffee'){b(1.3,.8,1,0,.4,0,mats.white);b(.95,1.35,.7,0,1.48,0,black);b(.65,.5,.05,0,1.82,.38,mats.dark);b(.45,.1,.2,0,1.4,.45,metal);b(.75,.06,.5,0,.94,.28,black);c(.13,.22,0,1.08,.5,mats.white);b(.4,.18,.5,0,2.22,0,black)}
@@ -13,5 +14,48 @@ if(type==='ceragem'){b(1.6,.5,3.3,0,.3,0,mats.white);b(1.45,.18,3.15,0,.65,0,bla
 if(type==='bike'){b(1.3,.12,2,0,.1,0,metal);const wheel=c(.4,.35,0,.5,.3,black);wheel.rotation.x=Math.PI/2;c(.08,1.1,0,.7,-.55,metal);b(.6,.17,.5,0,1.2,-.55,black);c(.07,1.6,0,.95,.8,metal);b(.8,.08,.08,0,1.8,.8,black);b(.55,.4,.08,0,1.85,1,black);for(const sx of [-.5,.5])b(.3,.08,.18,sx,.5,0,black)}
 if(type==='treadmill'){b(1.4,.2,2.7,0,.16,0,metal);b(1.15,.04,2.3,0,.3,0,black);for(const sx of [-.6,.6]){const p=b(.09,1.3,.1,sx,.9,-.9,metal);p.rotation.x=-.12;b(.1,.07,.8,sx,1.4,-.5,black)}b(1.3,.35,.2,0,1.65,-1,metal);b(.9,.2,.03,0,1.7,-.88,black)}
 if(type==='weights'){b(2.5,.12,.9,0,.8,0,mats.wood);for(const sx of [-1,1])b(.12,.75,.7,sx,.4,0,mats.wood);for(let i=0;i<5;i++){const sx=-.9+i*.45;b(.08,.08,.35,sx,1,0,black);for(const sz of [-.18,.18]){const w=c(.12,.1,sx,1,sz,black);w.rotation.x=Math.PI/2}}for(let i=0;i<3;i++){s(.19,-.65+i*.6,.25,.7,black);ring(.13,.04,-.65+i*.6,.49,.7,black)}for(let i=0;i<2;i++)s(.48,-.6+i*1.2,.5,-1,blue)}
-return g;
+if(type==='coffee'){
+ b(.84,.8,.025,0,1.35,.365,black);b(.7,.12,.16,0,1.42,.46,metal);
+ for(const sx of [-.13,.13])c(.036,.12,sx,1.3,.48,metal);
+ for(let i=0;i<8;i++)b(.035,.012,.35,-.3+i*.085,.98,.3,metal);
+ ring(.095,.025,.14,1.1,.5,mats.white);
+ for(const sx of [-.47,.47])b(.035,1.25,.035,sx,1.48,.36,metal);
+ const face=b(.62,.46,.016,0,1.82,.415,new THREE.MeshStandardMaterial({color:'#112a2c',roughness:.22}));
+ for(const sx of [-.18,0,.18]){b(.1,.1,.008,sx,1.84,.428,mats.white);b(.12,.012,.008,sx,1.75,.428,mats.blue)}
+ b(.48,.17,.48,0,2.27,-.03,new THREE.MeshStandardMaterial({color:'#4b3930',transparent:true,opacity:.8,roughness:.25}));
+ b(.52,.035,.52,0,2.37,-.03,black);
+ for(let i=0;i<6;i++)b(.2,.017,.012,.32,1.03+i*.065,-.357,metal);
+}
+if(type==='water'){
+ b(.87,1.8,.035,0,1.4,.445,mats.white);b(.72,.42,.025,0,1.76,.478,metal);
+ for(const [sx,color] of [[-.23,'#748fa1'],[0,'#b0b6b5'],[.23,'#ae7e78']]){c(.035,.02,sx,2.12,.1,mat(color));b(.09,.07,.02,sx,1.72,.5,mat(color))}
+ for(const sx of [-.16,.16]){c(.035,.14,sx,1.15,.5,metal);b(.08,.04,.11,sx,1.08,.51,metal)}
+ b(.66,.36,.025,0,.93,.48,black);
+ for(let i=0;i<7;i++)b(.025,.012,.32,-.27+i*.09,.69,.48,metal);
+ b(.73,.025,.02,0,.4,.44,metal);
+}
+if(type==='bloodpressure'){
+ for(const sx of [-.34,.34])b(.025,.28,.42,sx,1.35,.03,mats.white);
+ for(let i=0;i<3;i++)b(.12,.025,.01,-.31,1.51-i*.06,.39,metal);
+ c(.04,.025,-.3,1.2,.32,mat('#bb6d68'));
+}
+if(type==='bed'||type==='ceragem'){
+ for(const sx of [-.7,.7])b(.012,.012,2.95,sx,type==='bed'?.94:.75,0,metal);
+}
+if(type==='massage'){
+ for(const sx of [-.43,.43]){const cushion=s(.38,sx,1.42,-.41,cream);cushion.scale.set(.55,1.65,.48)}
+ for(const sx of [-.28,.28]){const foot=s(.3,sx,.65,1.28,cream);foot.scale.set(.8,.7,1.2)}
+ for(let i=0;i<4;i++)b(.9,.014,.012,0,.95+i*.2,-.445,metal);
+ b(.17,.3,.045,.83,1.3,.4,black);b(.12,.18,.012,.83,1.34,.43,blue);
+}
+if(type==='bike'){
+ for(const sx of [-.28,.28]){b(.32,.08,.2,sx,.42,.15,black);b(.025,.16,.025,sx,.5,.15,metal)}
+ for(const sx of [-.34,.34])b(.12,.1,.48,sx,1.79,.71,black);
+ b(.35,.22,.012,0,1.86,1.05,mats.blue);
+}
+if(type==='treadmill'){
+ for(let i=0;i<11;i++)b(.9,.005,.012,0,.327,-.9+i*.18,metal);
+ b(.65,.18,.015,0,1.72,-.85,black);for(const sx of [-.45,.45])b(.14,.07,.02,sx,1.64,-.87,mat(sx<0?'#a56968':'#7f9e8c'));
+}
+return compactMeshes(g);
 }
