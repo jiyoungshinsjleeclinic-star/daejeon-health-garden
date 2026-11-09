@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import {makeDevice} from './center-models.js';
+import {makeDevice} from './center-models.js?v=a5feae9';
 import {CENTER_PLAN,planPortal} from './center-plan.js';
 const host=document.querySelector('#world'),status=document.querySelector('#world-status');
 try { init(); } catch(e) { status.textContent='3D 공간을 불러오지 못했어요. 아래 체험 메뉴는 그대로 이용할 수 있습니다.';host.classList.add('failed');console.error(e); }
@@ -81,7 +81,7 @@ box(11.3,2.8,.15,0,1.4,-.3,mats.white);
 const f=CENTER_PLAN.facilities;
 for(const key of ['leftBP','rightBP'])addDevice('bloodpressure',f[key].x,f[key].z);
 deviceTag('자동혈압계','bloodpressure',f.leftBP.x,f.leftBP.z);deviceTag('자동혈압계','bloodpressure',f.rightBP.x,f.rightBP.z);
-for(const type of ['coffee','water'])addDevice(type,f[type].x,f[type].z).rotation.y=Math.PI;
+for(const type of ['coffee','water'])addDevice(type,f[type].x,f[type].z).rotation.y=Math.PI/2;
 deviceTag('커피머신 · 정수기','coffee',f.coffee.x,1);
 const sofaMat=mat('#dfddd0'),cushionMat=mat('#e9e6d9');
 function sofaSection(w,d,x,z){box(w,.34,d,x,.5,z,sofaMat);box(w,.3,d*.83,x,.78,z+.04,cushionMat);for(const sx of [-w/2+.15,w/2-.15])box(.15,.35,d-.15,x+sx,.2,z,mats.wood)}
