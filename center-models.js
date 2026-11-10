@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {compactMeshes} from './center-visuals.js?v=bp-1';
 import {createBPDisplay} from './bp-display.js?v=bp-1';
+import {createGlucoseDisplay} from './glucose-display.js?v=glucose-1';
 export function makeDevice(type,x,z,{parent,box,cylinder,sphere,mat,mats}){
 const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const b=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,g),c=(r,h,x,y,z,m)=>cylinder(r,h,x,y,z,m,g),s=(r,x,y,z,m)=>sphere(r,x,y,z,m,g);const metal=new THREE.MeshStandardMaterial({color:'#b4bdc0',metalness:.8,roughness:.26}),black=mat('#252b2e'),blue=mat('#498eb5'),cream=mat('#bcbfb7');
 function ring(r,t,x,y,z,m){const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,28),m);o.position.set(x,y,z);g.add(o);return o}
@@ -29,12 +30,14 @@ if(type==='arterial'){
  }
 }
 if(type==='cholesterol'||type==='glucose'){
- const lipid=type==='cholesterol',w=lipid?.4:.27,d=lipid?.69:.48;
+ const lipid=type==='cholesterol',w=lipid?.4:.31,d=lipid?.69:.58;
  b(w,.105,d,0,.0525,0,lipid?mats.white:mat('#263241'));
  b(w*.83,.017,d*.7,0,.134,-.03,mat('#29374a'));
- b(w*.69,.012,d*.39,0,.148,-d*.12,mat('#93a7ae'));
+ if(lipid||typeof document==='undefined')b(w*.69,.012,d*.39,0,.148,-d*.12,mat('#93a7ae'));
+ else{const display=createGlucoseDisplay();display.reset();const screen=new THREE.Mesh(new THREE.PlaneGeometry(w*.69,d*.39),display.material);screen.rotation.x=-Math.PI/2;screen.position.set(0,.157,-d*.12);g.add(screen);g.userData.glucoseDisplay=display;g.userData.glucoseScreen=screen}
  for(const sx of [-w*.25,0,w*.25])c(.025,.012,sx,.151,d*.22,mats.white);
  b(.06,.015,.04,0,.04,d*.51,black);
+ if(!lipid){b(.055,.012,.24,0,.055,.4,mats.white);b(.045,.013,.045,0,.056,.49,black)}
 }
 if(type==='hba1c'){
  b(.92,.56,.82,0,.28,0,mats.white);b(.83,.53,.045,0,.32,.427,black);

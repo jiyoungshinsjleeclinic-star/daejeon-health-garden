@@ -45,3 +45,8 @@ document.addEventListener('cardio-bp-stage',e=>{
  speakStep(messages[state]||'');
  const complete=state==='complete',cancelled=state==='cancelled';showStage(messages[state]||'',complete?'측정 동작 다시 보기':cancelled?'상담 의자로 돌아가기':'측정 체험 중지',complete?'cardio-greeting':cancelled?'counsel-seat':'cardio-measurement-cancel');document.querySelector('#talk-staff').disabled=!(inCardio&&wasSeated&&complete);
 });
+document.addEventListener('cardio-glucose-stage',e=>{
+ if(!inCardio)return;const state=e.detail,invitation='이제 혈당을 측정하겠습니다. 원하시는 손가락을 앞으로 내밀어 주세요.';
+ const messages={invitation,'finger-forward':'왼손 검지를 앞으로 내밀어 주세요.',preparing:'편안히 앉아서 손을 그대로 유지해 주세요.',measuring:'잠시만 기다려 주세요. 혈당계 표시를 확인하겠습니다.',result:'혈당계에 92 mg/dL가 표시됩니다. 측정값은 예시입니다. 실제 검사 결과나 건강 판정이 아닙니다.',finishing:'혈당은 측정이 끝났습니다. 계속 앉아 있어 주세요.','staff-back':'혈당은 측정이 끝났습니다. 계속 앉아 있어 주세요.',complete:'혈당은 측정이 끝났습니다. 계속 앉아 있어 주세요.',cancelled:'혈당 측정 동작 체험을 중지했습니다. 편안히 앉아 계세요.'};
+ const done=['complete','cancelled'].includes(state);stopBP.hidden=done;speakStep(messages[state]||'');showStage(messages[state]||'',done?'직원과 이야기하기':'측정 체험 중지',done?'cardio-greeting':'cardio-measurement-cancel');document.querySelector('#talk-staff').disabled=!done;
+});
