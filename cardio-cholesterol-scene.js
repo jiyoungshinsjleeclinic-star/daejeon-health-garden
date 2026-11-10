@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 
-export const CHOLESTEROL_SEQUENCE=[['invitation',5],['ring-forward',4],['code-check',3],['strip-insert',3],['finger-prep',4],['sample',4],['waiting',5],['result',8],['finishing',4],['staff-back',5]];
+export const CHOLESTEROL_SEQUENCE=[['invitation',5],['ring-forward',4],['code-check',3],['strip-insert',3],['finger-prep',4],['sample',4],['waiting',5],['staff-return',5],['result-total',6],['result-triglyceride',6],['result-ldl',6],['result-hdl',8]];
 export function createCholesterolScene(visitor,employee,device,pose,onStage,onComplete){
  const home=device.position.clone(),rotation=device.quaternion.clone(),display=device.userData.cholesterolDisplay,strip=device.userData.cholesterolStrip;
  const left=visitor.arms[1],ringFinger=left.userData.indexFinger.clone(true);ringFinger.position.x=-.04;ringFinger.visible=false;left.userData.elbow.add(ringFinger);
@@ -28,12 +28,13 @@ export function createCholesterolScene(visitor,employee,device,pose,onStage,onCo
   update(now){
    if(!active)return;let t=Math.max(0,(now-startTime)/1000),entry=null;
    for(const candidate of CHOLESTEROL_SEQUENCE){if(t<candidate[1]){entry=candidate;break}t-=candidate[1]}
-   if(!entry){active=false;resetArms(visitor);pose(visitor,true);restoreMeter();restoreStaff();display?.update('result');onComplete();transition('complete');return}
+   if(!entry){active=false;resetArms(visitor);pose(visitor,true);restoreMeter();restoreStaff();display?.update('result-hdl');onComplete();transition('complete');return}
    const [next,duration]=entry,f=t/duration,s=f*f*(3-2*f);transition(next);resetArms(visitor);pose(visitor,true);resetArms(employee);pose(employee,false);
-   visitor.g.position.set(0,.13,2);visitor.g.rotation.set(0,Math.PI,0);const reach=next==='invitation'?0:next==='ring-forward'?s:next==='finishing'?1-s:next==='staff-back'?0:1;ring(reach);
+   visitor.g.position.set(0,.13,2);visitor.g.rotation.set(0,Math.PI,0);const isResult=next.startsWith('result-'),reach=next==='invitation'?0:next==='ring-forward'?s:next==='staff-return'?1-s:isResult?0:1;ring(reach);
    if(next==='invitation'||next==='ring-forward'){restoreStaff();restoreMeter()}
    else if(next==='code-check'){walkStaff(f);device.position.copy(home);show('code-check')}
-   else if(next==='staff-back'){walkStaff(f,true);restoreMeter()}
+   else if(next==='staff-return'){walkStaff(f,true);device.position.lerpVectors(heldPosition,home,s);device.quaternion.slerpQuaternions(heldRotation,rotation,s);if(strip)strip.visible=true;show('waiting')}
+   else if(isResult){restoreStaff();device.position.copy(home);device.quaternion.copy(rotation);if(strip)strip.visible=true;show(next)}
    else{
     employee.g.position.copy(staffRoute.at(-1));employee.g.rotation.set(0,Math.PI/2,0);employee.arms.forEach((a,i)=>{a.rotation.x=-1.2;a.rotation.z=i===0?.45:-.45});
     holdMeter(next==='strip-insert'?s:1);if(strip)strip.visible=true;
@@ -41,14 +42,12 @@ export function createCholesterolScene(visitor,employee,device,pose,onStage,onCo
     if(next==='finger-prep')show('finger-prep');
     if(next==='sample')show('sample');
     if(next==='waiting')show('waiting');
-    if(next==='result')show('result');
-    if(next==='finishing'){device.position.lerpVectors(heldPosition,home,s);device.quaternion.slerpQuaternions(heldRotation,rotation,s)}
    }
   },
   camera(aspect){
-   if(['code-check','strip-insert','sample','waiting','result'].includes(stage)){device.updateWorldMatrix(true,true);const focus=device.userData.cholesterolScreen?.getWorldPosition(new THREE.Vector3())||device.position.clone();if(aspect<1)focus.y-=.025;const offset=new THREE.Vector3(0,.44,.38).applyQuaternion(device.quaternion).multiplyScalar(Math.max(1,.276/(2*Math.tan(17*Math.PI/180)*aspect)*1.2/.62));return{focus,position:focus.clone().add(offset),fov:34}}
+   if(['code-check','strip-insert','sample','waiting'].includes(stage)||stage.startsWith('result-')){device.updateWorldMatrix(true,true);const screen=device.userData.cholesterolScreen?.getWorldPosition(new THREE.Vector3())||device.position.clone(),result=stage.startsWith('result-'),focus=screen.clone();if(result){focus.x-=aspect<1?.06:.14;focus.y-=aspect<1?.18:.12}else if(aspect<1)focus.y-=.025;const distance=Math.max(1,.276/(2*Math.tan(17*Math.PI/180)*aspect)*1.2/.62)*(result?1.55:1),offset=new THREE.Vector3(0,.44,.38).applyQuaternion(device.quaternion).multiplyScalar(distance);return{focus,position:screen.clone().add(offset),fov:34}}
    const focus=new THREE.Vector3(-.4,1.35,1.4);return{focus,position:focus.clone().add(new THREE.Vector3(-1.6,1.3,1.2).multiplyScalar(aspect<1?1.2:1)),fov:50};
   },
-  snapshot(){return{active,stage,leftRing:ringFinger.visible,leftElbow:left.userData.elbow.rotation.x,display:display?.value||null,stripVisible:!!strip?.visible,meterX:device.position.x,meterY:device.position.y,meterZ:device.position.z}}
+  snapshot(){return{active,stage,leftRing:ringFinger.visible,leftElbow:left.userData.elbow.rotation.x,display:display?.value||null,stripVisible:!!strip?.visible,staffSeated:employee.legs[0].rotation.x===-Math.PI/2,meterX:device.position.x,meterY:device.position.y,meterZ:device.position.z}}
  };
 }

@@ -2,7 +2,7 @@ import * as THREE from './vendor/three.module.js';
 import {compactMeshes} from './center-visuals.js?v=bp-1';
 import {createBPDisplay} from './bp-display.js?v=bp-1';
 import {createGlucoseDisplay} from './glucose-display.js?v=glucose-1';
-import {createCholesterolDisplay} from './cholesterol-display.js?v=cholesterol-1';
+import {createCholesterolDisplay} from './cholesterol-display.js?v=cholesterol-2';
 export function makeDevice(type,x,z,{parent,box,cylinder,sphere,mat,mats}){
 const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const b=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,g),c=(r,h,x,y,z,m)=>cylinder(r,h,x,y,z,m,g),s=(r,x,y,z,m)=>sphere(r,x,y,z,m,g);const metal=new THREE.MeshStandardMaterial({color:'#b4bdc0',metalness:.8,roughness:.26}),black=mat('#252b2e'),blue=mat('#498eb5'),cream=mat('#bcbfb7');
 function ring(r,t,x,y,z,m){const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,28),m);o.position.set(x,y,z);g.add(o);return o}

@@ -1,4 +1,4 @@
-import {speakStep,hideSpeech} from './center-speech.js?v=bp-3';
+import {speakStep,hideSpeech} from './center-speech.js?v=cholesterol-2';
 let inCardio=false,wasSeated=false;
 const dialog=document.querySelector('#dialog');
 const stopBP=document.createElement('button');stopBP.id='bp-stop';stopBP.className='icon-btn';stopBP.hidden=true;stopBP.type='button';stopBP.title='측정 체험 중지';stopBP.setAttribute('aria-label','측정 체험 중지');stopBP.innerHTML='<i data-lucide="square"></i>';stopBP.onclick=()=>document.dispatchEvent(new Event('cardio-measurement-cancel'));document.querySelector('.world-tools').append(stopBP);window.lucide?.createIcons();
@@ -52,6 +52,6 @@ document.addEventListener('cardio-glucose-stage',e=>{
 });
 document.addEventListener('cardio-cholesterol-stage',e=>{
  if(!inCardio)return;const state=e.detail,invitation='이제 콜레스테롤 측정을 하겠습니다. 편하신 손가락을 보여 주세요.';
- const messages={invitation,'ring-forward':'왼손 네 번째 손가락을 앞으로 내밀어 주세요.','code-check':'측정기와 스트립의 코드 번호가 일치하는지 확인합니다.','strip-insert':'검사용 스트립을 측정기에 삽입합니다.','finger-prep':'손가락 끝을 준비하는 동작입니다. 실제 채혈은 진행하지 않습니다.',sample:'손가락 끝을 스트립에 가볍게 대는 측정 동작을 체험합니다.','waiting':'결과를 기다리고 있습니다. 실제 절차보다 짧게 구성한 가상 체험입니다.',result:'콜레스테롤 측정 예시 168 mg/dL가 표시됩니다. 실제 검사 결과나 건강 판정이 아닙니다.',finishing:'콜레스테롤 측정 체험이 끝났습니다. 계속 의자에 앉아 있어 주세요.','staff-back':'콜레스테롤 측정 체험이 끝났습니다. 계속 의자에 앉아 있어 주세요.',complete:'콜레스테롤 측정 체험이 끝났습니다. 계속 의자에 앉아 있어 주세요.',cancelled:'콜레스테롤 측정 동작 체험을 중지했습니다. 편안히 앉아 계세요.'};
- const done=['complete','cancelled'].includes(state);stopBP.hidden=done;speakStep(messages[state]||'');showStage(messages[state]||'',done?'직원과 이야기하기':'측정 체험 중지',done?'cardio-greeting':'cardio-measurement-cancel');document.querySelector('#talk-staff').disabled=!done;
+ const messages={invitation,'ring-forward':'왼손 네 번째 손가락을 앞으로 내밀어 주세요.','code-check':'측정기와 스트립의 코드 번호가 일치하는지 확인합니다.','strip-insert':'검사용 스트립을 측정기에 삽입합니다.','finger-prep':'손가락 끝을 준비하는 동작입니다. 실제 채혈은 진행하지 않습니다.',sample:'손가락 끝을 스트립에 가볍게 대는 측정 동작을 체험합니다.','waiting':'결과를 기다리고 있습니다. 실제 절차보다 짧게 구성한 가상 체험입니다.','staff-return':'안내원이 기기를 책상에 놓고 자리로 돌아가 앉습니다.','result-total':'총콜레스테롤 측정 예시는 168 mg/dL입니다.','result-triglyceride':'중성지방 측정 예시는 150 mg/dL입니다.','result-ldl':'저밀도지단백콜레스테롤 측정 예시는 60 mg/dL입니다.','result-hdl':'고밀도지단백콜레스테롤 측정 예시는 100 mg/dL입니다. 모든 수치는 실제 검사 결과나 건강 판정이 아닙니다.',complete:'콜레스테롤 측정 체험이 끝났습니다. 계속 의자에 앉아 있어 주세요.',cancelled:'콜레스테롤 측정 동작 체험을 중지했습니다. 편안히 앉아 계세요.'};
+ const done=['complete','cancelled'].includes(state),result=state.startsWith('result-'),clear=['code-check','strip-insert','sample','waiting'].includes(state)||result;stopBP.hidden=done;speakStep(messages[state]||'',{placement:clear?'screen-clear':'auto',persist:result});showStage(messages[state]||'',done?'직원과 이야기하기':'측정 체험 중지',done?'cardio-greeting':'cardio-measurement-cancel');document.querySelector('#talk-staff').disabled=!done;
 });
