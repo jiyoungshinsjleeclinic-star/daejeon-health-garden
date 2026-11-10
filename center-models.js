@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import {compactMeshes} from './center-visuals.js?v=natural-1';
+import {compactMeshes} from './center-visuals.js?v=height-1';
 export function makeDevice(type,x,z,{parent,box,cylinder,sphere,mat,mats}){
 const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const b=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,g),c=(r,h,x,y,z,m)=>cylinder(r,h,x,y,z,m,g),s=(r,x,y,z,m)=>sphere(r,x,y,z,m,g);const metal=new THREE.MeshStandardMaterial({color:'#b4bdc0',metalness:.8,roughness:.26}),black=mat('#252b2e'),blue=mat('#498eb5'),cream=mat('#bcbfb7');
 function ring(r,t,x,y,z,m){const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,28),m);o.position.set(x,y,z);g.add(o);return o}
@@ -9,7 +9,8 @@ if(type==='heightweight'){
  for(const sx of [-.24,.24])b(.17,.01,.48,sx,.239,.12,metal);
  b(.17,2.65,.16,0,1.5,-.42,mats.white);b(.07,2.15,.018,0,1.45,-.326,metal);
  for(let i=0;i<16;i++)b(i%4===0?.06:.03,.012,.01,.01,.6+i*.13,-.313,black);
- b(.65,.08,.55,-.18,2.8,-.17,black);b(.19,.3,.06,.14,1.59,-.30,mats.white);b(.135,.15,.012,.14,1.63,-.26,mats.blue);
+ const head=new THREE.Group();head.position.y=2.8;g.add(head);head.add(b(.75,.08,.7,0,0,-.05,black));g.userData.heightHead=head;
+ b(.19,.3,.06,.14,1.59,-.30,mats.white);b(.135,.15,.012,.14,1.63,-.26,mats.blue);
 }
 if(type==='arterial'){
  b(1.05,.12,.9,0,.2,0,mats.white);

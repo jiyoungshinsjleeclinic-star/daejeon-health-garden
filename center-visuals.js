@@ -71,7 +71,7 @@ export function makePerson(color,parent,mats){
  for(const side of [-1,1]){const collar=softBox(g,mats.white,.085,.105,.02,side*.055,1.49,.18,.012);collar.rotation.z=side*.4}
  softBox(g,shirt,.035,.48,.025,0,1.2,.186,.005);
  for(const y of [1.12,1.27,1.39])ellipsoid(g,mats.white,0,y,.207,.011,.011,.005);
- const arms=[],legs=[];
+ const arms=[],legs=[],shoes=[],feet=[];
  for(const x of [-.355,.355]){
   const arm=new THREE.Group();arm.position.set(x,1.47,0);g.add(arm);
   limb(arm,shirt,.085,.36,0,-.15,0);limb(arm,shirt,.077,.29,0,-.4,.015);
@@ -80,11 +80,13 @@ export function makePerson(color,parent,mats){
  for(const x of [-.14,.14]){
   const leg=new THREE.Group();leg.position.set(x,.91,0);g.add(leg);limb(leg,trousers,.112,.44,0,-.2,0);
   const knee=new THREE.Group();knee.position.y=-.41;leg.add(knee);limb(knee,trousers,.097,.39,0,-.17,0);
-  softBox(knee,mats.white,.22,.06,.39,0,-.455,.072,.025);softBox(knee,mats.leather,.205,.135,.35,0,-.38,.065,.045);
-  for(const z of [.03,.09,.15])softBox(knee,mats.white,.12,.009,.013,0,-.31,z,.003);
+  const shoe=new THREE.Group();knee.add(shoe);shoes.push(shoe);
+  softBox(shoe,mats.white,.22,.06,.39,0,-.455,.072,.025);softBox(shoe,mats.leather,.205,.135,.35,0,-.38,.065,.045);
+  for(const z of [.03,.09,.15])softBox(shoe,mats.white,.12,.009,.013,0,-.31,z,.003);
+  const foot=new THREE.Group();knee.add(foot);foot.visible=false;feet.push(foot);softBox(foot,mats.skin,.18,.08,.28,0,-.44,.065,.035);
   leg.userData.knee=knee;legs.push(leg);
  }
- compactMeshes(g);return {g,shirt,legs,arms};
+ compactMeshes(g);return {g,shirt,legs,arms,shoes,feet};
 }
 
 export function makeChair(x,z,color,parent,mats){
