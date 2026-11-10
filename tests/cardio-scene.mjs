@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import * as THREE from '../vendor/three.module.js';
+import {createWaistScene} from '../cardio-scene.js';
+const person=()=>({g:new THREE.Group(),arms:[new THREE.Group(),new THREE.Group()],legs:[new THREE.Group(),new THREE.Group()]});
+const visitor=person(),employee=person(),stages=[];
+const scene=createWaistScene(visitor,employee,()=>{},stage=>stages.push(stage));
+scene.start();const start=performance.now();scene.update(start+1100);assert.equal(scene.stage,'approaching');
+scene.update(start+5500);assert.equal(scene.stage,'measuring');assert.equal(scene.snapshot().tapeVisible,true);assert.equal(visitor.arms[0].rotation.z,-Math.PI/2);assert.equal(visitor.arms[1].rotation.z,Math.PI/2);assert.equal(employee.g.position.x,-.88);assert.equal(visitor.g.position.z,3.3);
+scene.update(start+10000);assert.equal(scene.stage,'returning');assert.equal(scene.snapshot().tapeVisible,false);
+scene.update(start+14000);assert.equal(scene.stage,'complete');assert.equal(scene.active,false);assert.equal(employee.g.position.z,-2);assert.equal(visitor.arms[0].rotation.z,0);
+scene.start();scene.update(performance.now()+5500);scene.cancel();assert.equal(scene.stage,'idle');assert.equal(scene.snapshot().tapeVisible,false);assert.equal(employee.g.position.z,-2);assert.equal(visitor.arms[1].rotation.z,0);
+scene.dispose();assert.equal(visitor.g.children.length,0);assert(stages.includes('standing'));
+console.log('Waist scene: arms, staff route, tape, completion, interruption and disposal passed.');
