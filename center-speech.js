@@ -7,11 +7,11 @@ new ResizeObserver(positionSpeech).observe(world);
 export function hideSpeech(){clearTimeout(timer);speech.hidden=true;lastText=''}
 export function speak(text,{name='안내원',duration=0}={}){
  if(text===lastText&&!speech.hidden)return;
- clearTimeout(timer);lastText=text;speaker.textContent=name;line.textContent=text;speech.hidden=false;positionSpeech();
+ clearTimeout(timer);lastText=text;speaker.textContent=name;line.textContent=text;speech.hidden=false;speech.dataset.hasDialogue='true';positionSpeech();
  if(duration)timer=setTimeout(()=>{speech.hidden=true},duration);
 }
 export function speakStep(text){speak(text,{duration:Math.max(2800,Math.min(6000,text.length*60))})}
 close.onclick=hideSpeech;
 document.addEventListener('center-speech',e=>speak(e.detail.text,{name:e.detail.speaker||'안내원'}));
-document.addEventListener('counsel-room-change',hideSpeech);
+document.addEventListener('counsel-room-change',()=>{hideSpeech();speech.dataset.hasDialogue='false'});
 new MutationObserver(()=>{if(document.querySelector('#dialog').open)hideSpeech()}).observe(document.querySelector('#dialog'),{attributes:true,attributeFilter:['open']});
