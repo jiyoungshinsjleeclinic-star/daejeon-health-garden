@@ -74,8 +74,9 @@ export function makePerson(color,parent,mats){
  const arms=[],legs=[],shoes=[],feet=[];
  for(const x of [-.355,.355]){
   const arm=new THREE.Group();arm.position.set(x,1.47,0);g.add(arm);
-  limb(arm,shirt,.085,.36,0,-.15,0);limb(arm,shirt,.077,.29,0,-.4,.015);
-  softBox(arm,mats.white,.16,.045,.17,0,-.515,.015,.015);ellipsoid(arm,mats.skin,0,-.594,.026,.079,.095,.063);arms.push(arm);
+  limb(arm,shirt,.085,.36,0,-.15,0);const elbow=new THREE.Group();elbow.position.y=-.3;arm.add(elbow);arm.userData.elbow=elbow;limb(elbow,shirt,.077,.29,0,-.1,.015);
+  softBox(elbow,mats.white,.16,.045,.17,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.079,.095,.063);
+  const finger=new THREE.Group();elbow.add(finger);finger.visible=false;limb(finger,mats.skin,.017,.18,.02,-.415,0);arm.userData.indexFinger=finger;arms.push(arm);
  }
  for(const x of [-.14,.14]){
   const leg=new THREE.Group();leg.position.set(x,.91,0);g.add(leg);limb(leg,trousers,.112,.44,0,-.2,0);

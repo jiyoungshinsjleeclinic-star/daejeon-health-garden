@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
-import {compactMeshes} from './center-visuals.js?v=height-1';
+import {compactMeshes} from './center-visuals.js?v=bp-1';
+import {createBPDisplay} from './bp-display.js?v=bp-1';
 export function makeDevice(type,x,z,{parent,box,cylinder,sphere,mat,mats}){
 const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const b=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,g),c=(r,h,x,y,z,m)=>cylinder(r,h,x,y,z,m,g),s=(r,x,y,z,m)=>sphere(r,x,y,z,m,g);const metal=new THREE.MeshStandardMaterial({color:'#b4bdc0',metalness:.8,roughness:.26}),black=mat('#252b2e'),blue=mat('#498eb5'),cream=mat('#bcbfb7');
 function ring(r,t,x,y,z,m){const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,28),m);o.position.set(x,y,z);g.add(o);return o}
@@ -41,7 +42,19 @@ if(type==='hba1c'){
  b(.54,.025,.44,0,.603,-.06,mats.white);b(.18,.02,.13,0,.621,-.06,metal);
  for(let i=0;i<4;i++)b(.013,.08,.045,.467,.22+i*.055,-.12,metal);
 }
-if(type==='bloodpressure'){b(.8,.1,.7,0,.05,0,metal);c(.09,.85,0,.5,0,metal);b(1.3,.1,.9,0,.95,0,mats.white);b(.9,.35,.65,0,1.2,0,mats.white);ring(.26,.12,.18,1.42,.08,blue);b(.32,.25,.04,-.31,1.45,.34,black);b(.25,.17,.02,-.31,1.47,.37,mats.blue);c(.3,.12,0,.55,1,mats.dark)}
+if(type==='bloodpressure'){
+ b(.8,.1,.7,0,.05,0,metal);c(.09,.85,0,.5,0,metal);b(1.5,.1,1.1,0,.95,0,mats.white);
+ b(.78,.38,.5,-.34,1.18,-.15,mats.white);b(.78,.1,.7,-.34,1.04,.1,mats.white);b(.72,.65,.07,-.355,1.47,.29,black);
+ if(typeof document!=='undefined'){
+  const display=createBPDisplay();display.reset();const screen=new THREE.Mesh(new THREE.PlaneGeometry(.66,.55),display.material);screen.position.set(-.355,1.47,.332);g.add(screen);g.userData.bpDisplay=display;g.userData.bpScreen=screen;
+  const startLabel=new THREE.Mesh(new THREE.PlaneGeometry(.105,.0525),display.buttonMaterial);startLabel.rotation.x=-Math.PI/2;startLabel.position.set(-.355,1.12,.446);g.add(startLabel);
+ }
+ b(.67,.46,.89,.35,1.29,0,mats.white);
+ const shell=new THREE.Mesh(new THREE.CylinderGeometry(.33,.33,.78,36,1,true),mats.white);shell.rotation.x=Math.PI/2;shell.position.set(.32,1.6,.02);g.add(shell);
+ const cuff=new THREE.Mesh(new THREE.CylinderGeometry(.235,.235,.67,36,1,true),new THREE.MeshStandardMaterial({color:'#5c656c',side:THREE.DoubleSide,roughness:1}));cuff.rotation.x=Math.PI/2;cuff.position.set(.32,1.6,.04);g.add(cuff);g.userData.bpCuff=ring(.275,.067,.32,1.6,.43,blue);
+ const start=c(.075,.022,-.355,1.105,.446,mat('#257ac0'));ring(.073,.012,-.355,1.12,.446,mat('#65d9ff')).rotation.x=-Math.PI/2;g.userData.bpStart=start;
+ b(.22,.025,.15,.02,1.1,.35,black);const stool=c(.3,.12,0,.55/.75,.9,mats.dark);stool.scale.y=1/.75;g.scale.y=.75;
+}
 if(type==='coffee'){b(1.3,.8,1,0,.4,0,mats.white);b(.95,1.35,.7,0,1.48,0,black);b(.65,.5,.05,0,1.82,.38,mats.dark);b(.45,.1,.2,0,1.4,.45,metal);b(.75,.06,.5,0,.94,.28,black);c(.13,.22,0,1.08,.5,mats.white);b(.4,.18,.5,0,2.22,0,black)}
 if(type==='water'){b(.95,2.35,.85,0,1.2,0,mats.white);b(.7,.65,.05,0,1.68,.45,mats.blue);b(.65,.4,.15,0,.9,.4,metal);b(.7,.05,.45,0,.65,.45,metal)}
 if(type==='inbody'){b(.95,.13,1.15,0,.1,0,black);for(const sx of [-.27,.27])b(.18,.02,.55,sx,.18,.1,metal);c(.1,1.65,0,.9,-.35,metal);b(.7,.45,.15,0,1.95,-.35,metal);b(.55,.3,.02,0,1.96,-.26,black);for(const sx of [-.65,.65]){const h=b(.07,.75,.07,sx,1.1,-.15,black);h.rotation.z=sx<0?-.65:.65}}
@@ -71,11 +84,6 @@ if(type==='water'){
  b(.66,.36,.025,0,.93,.48,black);
  for(let i=0;i<7;i++)b(.025,.012,.32,-.27+i*.09,.69,.48,metal);
  b(.73,.025,.02,0,.4,.44,metal);
-}
-if(type==='bloodpressure'){
- for(const sx of [-.34,.34])b(.025,.28,.42,sx,1.35,.03,mats.white);
- for(let i=0;i<3;i++)b(.12,.025,.01,-.31,1.51-i*.06,.39,metal);
- c(.04,.025,-.3,1.2,.32,mat('#bb6d68'));
 }
 if(type==='bed'||type==='ceragem'){
  for(const sx of [-.7,.7])b(.012,.012,2.95,sx,type==='bed'?.94:.75,0,metal);
