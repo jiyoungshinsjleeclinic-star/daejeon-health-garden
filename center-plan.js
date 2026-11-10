@@ -36,3 +36,5 @@ export const WAITING_SOFA={
  seat:{x:-7.9,y:.13,z:7.1},
  nearbyRadius:3.5
 };
+
+export const RECEPTION_RETURN_POINT={x:0,z:3.5};

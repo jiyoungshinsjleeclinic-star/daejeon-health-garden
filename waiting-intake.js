@@ -29,6 +29,6 @@ function showBack(){
  for(const [index,text] of CONSENT_CHECK_ITEMS.entries()){
   const label=document.createElement('label'),check=document.createElement('input'),span=document.createElement('span');check.type='checkbox';check.checked=checks.has(index);check.onchange=()=>check.checked?checks.add(index):checks.delete(index);span.textContent=text;label.append(check,span);page.append(label);
  }
- button('앞장으로',showFront);button('확인 마치기',()=>dialog.close(),true);
+ button('앞장으로',showFront);button('안내데스크로 가기',()=>{document.dispatchEvent(new Event('intake-reviewed'));dialog.close();document.dispatchEvent(new Event('reception-return'))},true);
 }
 dialog.addEventListener('close',()=>checks.clear());

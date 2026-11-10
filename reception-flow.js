@@ -1,5 +1,37 @@
 export const RECEPTION_WELCOME='안녕하세요. 대전근로자건강센터에 오신 것을 환영합니다.';
+export const COUNSELING_OVERVIEW=[
+ '어떤 상담을 이용하고 싶으신가요? 간단하게 안내해 드리면,',
+ '뇌심혈관계질환 예방상담: 혈압, 혈당, 콜레스테롤, 당화혈색소, 동맥경화 검사가 있습니다.',
+ '근골격계질환 상담: 인바디(체성분검사)와 체형분석검사(골반 비뚤림·척추측만 관련 확인)를 안내합니다.',
+ '직무스트레스: 스트레스검사와 상담이 있습니다.',
+ '작업환경: 사업장의 작업환경측정결과서를 바탕으로 한 컨설팅과 이어핏(청력보호구 밀착도검사)이 있습니다.',
+ '직업트라우마: 사업장에서 산업재해를 목격했거나 관련 심리상담을 원하시면 상담을 안내합니다.',
+ '실제 검사·상담 가능 여부와 준비사항은 현장 담당자에게 확인해 주세요.'
+].join('\n\n');
+export const POST_INTAKE_CHOICES=[
+ {label:'a. 혈압·혈당·콜레스테롤 검사를 하고 싶어요.',next:'examBasic'},
+ {label:'b. 당화혈색소 검사를 하고 싶어요.',next:'examA1c'},
+ {label:'c. 동맥경화 검사를 하고 싶어요.',next:'examArterial'},
+ {label:'d. 인바디(체성분) 검사를 하고 싶어요.',next:'examInbody'},
+ {label:'e. 체형분석을 하고 싶어요.',next:'examPosture'},
+ {label:'f. 스트레스검사를 하고 싶어요.',next:'examStress'},
+ {label:'g. 작업환경컨설팅 상담을 받고 싶어요.',next:'examEnvironment'},
+ {label:'h. 청력보호구 밀착도검사를 하고 싶어요.',next:'examEarfit'},
+ {label:'i. 동료의 산업재해를 목격해서 심리상담을 받고 싶어요.',next:'examTrauma'}
+];
 export const RECEPTION_FLOW={
+ afterIntake:{text:'상담지를 다 작성하셨나요?',choices:[{label:'네.',next:'afterIntakeServices'},{label:'아직 작성하지 못했어요.',next:'intakePending'}]},
+ intakePending:{text:'괜찮습니다. 대기실 소파에서 상담지 작성 항목을 다시 확인하실 수 있어요. 실제 작성과 제출은 현장 담당자의 안내를 따라 주세요.',actions:[{label:'대기실로 돌아가기',action:'waiting-intake'}]},
+ afterIntakeServices:{text:COUNSELING_OVERVIEW,choices:POST_INTAKE_CHOICES},
+ examBasic:{text:'혈압·혈당·콜레스테롤 검사를 안내해 드릴게요. 먼저 대기실에서 5분 정도 앉아 쉰 뒤 자동혈압계를 이용해 주세요. 혈당·콜레스테롤 검사의 준비사항과 진행 순서는 현장 담당자에게 확인해 주세요.',actions:[{label:'대기실로 가기',action:'waiting'},{label:'자동혈압계 위치 보기',action:'bloodpressure'},{label:'뇌심혈관질환 예방상담실 둘러보기',action:'cardio'}]},
+ examA1c:{text:'당화혈색소 검사를 원하시는군요. 뇌심혈관질환 예방상담실 담당자에게 검사 가능 여부와 준비사항을 확인해 주세요.',actions:[{label:'뇌심혈관질환 예방상담실 둘러보기',action:'cardio'}]},
+ examArterial:{text:'동맥경화 검사를 안내해 드릴게요. 뇌심혈관질환 예방상담실 담당자에게 검사 방법과 준비사항을 확인해 주세요.',actions:[{label:'뇌심혈관질환 예방상담실 둘러보기',action:'cardio'}]},
+ examInbody:{text:'인바디(체성분) 검사를 원하시는군요. 근골격계질환 상담 분야로 안내해 드릴게요. 측정 가능 여부와 준비사항, 실제 결과는 담당자와 확인해 주세요.',actions:[{label:'근골격계질환 상담실 둘러보기',action:'muscle'}]},
+ examPosture:{text:'체형분석을 원하시는군요. 근골격계질환 상담에서 골반 정렬과 척추측만 관련 상태 확인에 대해 안내받으실 수 있습니다. 실제 검사 방법과 결과 해석은 담당자에게 확인해 주세요.',actions:[{label:'근골격계질환 상담실 둘러보기',action:'muscle'}]},
+ examStress:{text:'스트레스검사와 상담을 안내해 드릴게요. 검사·상담 가능 시간과 담당자는 현장 접수대에서 확인해 주세요.',actions:[{label:'직무스트레스 상담 안내 둘러보기',action:'stress'}]},
+ examEnvironment:{text:'작업환경컨설팅 상담을 원하시는군요. 사업장의 작업환경측정결과서를 바탕으로 상담을 안내합니다. 준비할 자료와 상담 일정은 현장 담당자에게 확인해 주세요.',actions:[{label:'작업환경컨설팅 안내 둘러보기',action:'environment'}]},
+ examEarfit:{text:'청력보호구 밀착도검사인 이어핏을 안내해 드릴게요. 실제 검사 가능 여부와 준비할 보호구 등은 작업환경 담당자에게 확인해 주세요.',actions:[{label:'작업환경·이어핏 상담 안내 둘러보기',action:'environment'}]},
+ examTrauma:{text:'동료의 산업재해를 목격하신 경험에 대해 상담을 원하시는군요. 직업트라우마 상담을 안내해 드릴게요. 자세한 경험을 이 화면에 적으실 필요는 없습니다. 원하시는 범위에서 현장 담당자와 이야기해 주세요.',actions:[{label:'직업트라우마 상담 안내 둘러보기',action:'trauma'}]},
  start:{text:'안녕하세요. 처음 오셨나요?',choices:[
   {label:'네. 처음이에요.',next:'first'},
   {label:'다녀간 적이 있어요.',next:'returning'},
