@@ -3,6 +3,7 @@ import {compactMeshes} from './center-visuals.js?v=bp-1';
 import {createBPDisplay} from './bp-display.js?v=bp-1';
 import {createGlucoseDisplay} from './glucose-display.js?v=glucose-1';
 import {createCholesterolDisplay} from './cholesterol-display.js?v=cholesterol-2';
+import {createHbA1cDisplay} from './hba1c-display.js?v=hba1c-1';
 export function makeDevice(type,x,z,{parent,box,cylinder,sphere,mat,mats}){
 const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const b=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,g),c=(r,h,x,y,z,m)=>cylinder(r,h,x,y,z,m,g),s=(r,x,y,z,m)=>sphere(r,x,y,z,m,g);const metal=new THREE.MeshStandardMaterial({color:'#b4bdc0',metalness:.8,roughness:.26}),black=mat('#252b2e'),blue=mat('#498eb5'),cream=mat('#bcbfb7');
 function ring(r,t,x,y,z,m){const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,28),m);o.position.set(x,y,z);g.add(o);return o}
@@ -46,7 +47,7 @@ if(type==='cholesterol'||type==='glucose'){
 }
 if(type==='hba1c'){
  b(.92,.56,.82,0,.28,0,mats.white);b(.83,.53,.045,0,.32,.427,black);
- b(.65,.32,.018,0,.39,.46,mat('#738e99'));b(.28,.045,.025,0,.12,.46,black);
+ if(typeof document!=='undefined'){const display=createHbA1cDisplay();display.reset();const screen=new THREE.Mesh(new THREE.PlaneGeometry(.65,.32),display.material);screen.position.set(0,.39,.462);g.add(screen);g.userData.hba1cDisplay=display;g.userData.hba1cScreen=screen}else b(.65,.32,.018,0,.39,.46,mat('#738e99'));b(.28,.045,.025,0,.12,.46,black);
  b(.54,.025,.44,0,.603,-.06,mats.white);b(.18,.02,.13,0,.621,-.06,metal);
  for(let i=0;i<4;i++)b(.013,.08,.045,.467,.22+i*.055,-.12,metal);
 }
