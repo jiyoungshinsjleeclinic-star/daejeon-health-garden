@@ -1,0 +1,2 @@
+.education-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px;max-height:min(48vh,430px);overflow:auto;padding:2px}.education-options .chat-choice{text-align:left;line-height:1.45;min-height:54px}.education-question{font-size:18px;font-weight:700;color:#234d42}
+@media(max-width:680px){.education-options{grid-template-columns:1fr;max-height:45vh}.education-options .chat-choice{min-height:48px}.education-question{font-size:16px}}
