@@ -1,0 +1,5 @@
+.world-hud #presence-count{margin-top:5px;padding-top:5px;border-top:1px solid #d8e5de;color:#2d6553;font-weight:700}
+.gender-switch{display:flex;gap:4px;padding-right:7px;border-right:1px solid #d8e5de}
+.gender-switch .icon-btn{width:34px;height:34px}
+.gender-switch .gender-symbol{font-size:21px;font-weight:700;line-height:1}
+@media(max-width:650px){.avatar-control .gender-switch{position:absolute;left:0;bottom:52px;background:#ffffffed;border:1px solid #d2e1d8;border-radius:6px;padding:5px}.world-hud #presence-count{max-width:170px}}

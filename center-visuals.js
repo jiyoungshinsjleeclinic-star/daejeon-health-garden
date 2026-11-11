@@ -50,7 +50,7 @@ function ellipsoid(parent,material,x,y,z,sx,sy,sz){const o=mesh(parent,new THREE
 function softBox(parent,m,w,h,d,x,y,z,r=.07){return mesh(parent,roundedGeometry(w,h,d,r),m,x,y,z)}
 function limb(parent,m,r,length,x,y,z){return mesh(parent,new THREE.CapsuleGeometry(r,Math.max(.01,length-r*2),3,10),m,x,y,z)}
 
-export function makePerson(color,parent,mats){
+export function makePerson(color,parent,mats,options={}){
  const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshStandardMaterial({color,roughness:.92,map:mats.fabric.map});
  const trousers=new THREE.MeshStandardMaterial({color:'#424c51',roughness:.95}),hair=new THREE.MeshStandardMaterial({color:'#392f2b',roughness:.9});
  const eyes=new THREE.MeshStandardMaterial({color:'#252724',roughness:.3}),lip=new THREE.MeshStandardMaterial({color:'#ad7667'});
@@ -61,6 +61,10 @@ export function makePerson(color,parent,mats){
  for(const x of [-.239,.239])ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035);
  const cap=mesh(g,new THREE.SphereGeometry(1,20,12,0,Math.PI*2,0,Math.PI*.53),hair,0,1.89,.015);cap.scale.set(.25,.3,.245);
  for(const x of [-.13,0,.13]){const bang=ellipsoid(g,hair,x,2.018,.16,.105,.065,.055);bang.rotation.z=-.25}
+ const femaleHair=new THREE.Group();g.add(femaleHair);
+ ellipsoid(femaleHair,hair,0,1.82,-.16,.245,.31,.12);
+ for(const x of [-.22,.22]){const lock=limb(femaleHair,hair,.055,.44,x,1.72,-.055);lock.rotation.z=x<0?-.08:.08}
+ const ponytail=ellipsoid(femaleHair,hair,.25,1.78,-.12,.115,.24,.105);ponytail.rotation.z=-.38;
  for(const x of [-.085,.085]){
   ellipsoid(g,mats.white,x,1.89,.221,.038,.022,.012);ellipsoid(g,eyes,x,1.889,.232,.018,.023,.009);
   ellipsoid(g,mats.white,x-.005,1.897,.24,.005,.006,.003);
@@ -87,7 +91,8 @@ export function makePerson(color,parent,mats){
   const foot=new THREE.Group();knee.add(foot);foot.visible=false;feet.push(foot);softBox(foot,mats.skin,.18,.08,.28,0,-.44,.065,.035);
   leg.userData.knee=knee;legs.push(leg);
  }
- compactMeshes(g);return {g,shirt,legs,arms,shoes,feet};
+ compactMeshes(g);let gender='male';const setGender=value=>{gender=value==='female'?'female':'male';femaleHair.visible=gender==='female'};setGender(options.gender);
+ return {g,shirt,legs,arms,shoes,feet,setGender,get gender(){return gender}};
 }
 
 export function makeChristmasTree(x,z,scale,parent,mats){

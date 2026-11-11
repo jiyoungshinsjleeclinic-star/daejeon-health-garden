@@ -21,6 +21,7 @@ for(const dims of [[1.4,.2,1.1],[.08,.12,.02],[3,.8,.5]]){
 }
 const person=makePerson('#cb8c99',new THREE.Group(),mats);
 const standing=finiteModel(person.g);assert(standing.max.y>2&&standing.max.y<2.3);assert(standing.min.y>=0);
+assert.equal(person.gender,'male');person.setGender('female');assert.equal(person.gender,'female');finiteModel(person.g);person.setGender('male');
 assert.equal(person.legs.length,2);assert.equal(person.arms.length,2);
 assert.equal(person.shoes.length,2);assert.equal(person.feet.length,2);assert(person.shoes.every(s=>s.visible));assert(person.feet.every(f=>!f.visible));
 for(const arm of person.arms){assert(arm.userData.elbow?.parent===arm);assert(!arm.userData.indexFinger.visible);arm.userData.elbow.rotation.x=-.65;arm.userData.indexFinger.visible=true;finiteModel(person.g);arm.userData.elbow.rotation.x=0;arm.userData.indexFinger.visible=false}
