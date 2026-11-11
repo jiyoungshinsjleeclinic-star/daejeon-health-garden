@@ -90,6 +90,31 @@ export function makePerson(color,parent,mats){
  compactMeshes(g);return {g,shirt,legs,arms,shoes,feet};
 }
 
+export function makeChristmasTree(x,z,scale,parent,mats){
+ const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);parent.add(g);
+ const green=new THREE.MeshStandardMaterial({color:'#174d32',roughness:.9}),greenLight=new THREE.MeshStandardMaterial({color:'#276746',roughness:.88});
+ const red=new THREE.MeshStandardMaterial({color:'#a51f2c',metalness:.28,roughness:.32}),gold=new THREE.MeshStandardMaterial({color:'#d5a632',metalness:.7,roughness:.25}),silver=new THREE.MeshStandardMaterial({color:'#e4e0d5',metalness:.72,roughness:.2});
+ const glow=new THREE.MeshStandardMaterial({color:'#fff0ae',emissive:'#ffb52e',emissiveIntensity:3,roughness:.2}),trunk=new THREE.MeshStandardMaterial({color:'#65452d',roughness:1});
+ mesh(g,new THREE.CylinderGeometry(.16,.22,.7,18),trunk,0,.35,0);
+ const layers=[[1.2,.92,.82],[.98,.78,1.28],[.77,.7,1.72],[.57,.62,2.12],[.38,.55,2.48]];
+ layers.forEach(([radius,height,y],i)=>mesh(g,new THREE.ConeGeometry(radius,height,32,1),i%2?greenLight:green,0,y,0));
+ for(let i=0;i<34;i++){
+  const y=.72+i/33*1.98,angle=i*2.38,radius=(1-(y-.72)/2.35)*.92+.12,material=[red,gold,silver][i%3];
+  mesh(g,new THREE.SphereGeometry(i%5===0?.105:.075,12,9),material,Math.cos(angle)*radius,y,Math.sin(angle)*radius);
+ }
+ for(let i=0;i<46;i++){
+  const y=.68+i/45*2.12,angle=i*1.43,radius=(1-(y-.68)/2.38)*1.02+.1;
+  mesh(g,new THREE.SphereGeometry(.024,8,6),glow,Math.cos(angle)*radius,y,Math.sin(angle)*radius);
+ }
+ for(const [radius,y] of [[.88,1.08],[.67,1.6],[.45,2.08]]){const ribbon=mesh(g,new THREE.TorusGeometry(radius,.025,8,48),gold,0,y,0);ribbon.rotation.x=Math.PI/2}
+ const starShape=new THREE.Shape();for(let i=0;i<10;i++){const angle=-Math.PI/2+i*Math.PI/5,r=i%2===0?.31:.13,px=Math.cos(angle)*r,py=Math.sin(angle)*r;i?starShape.lineTo(px,py):starShape.moveTo(px,py)}starShape.closePath();
+ const star=mesh(g,new THREE.ExtrudeGeometry(starShape,{depth:.065,bevelEnabled:true,bevelSize:.018,bevelThickness:.018,bevelSegments:2}),gold,0,3.02,-.035);star.material=gold;
+ function gift(px,pz,w,h,d){softBox(g,red,w,h,d,px,h/2,pz,.045);softBox(g,gold,w*.13,h+.02,d+.015,px,h/2+.01,pz,.015);softBox(g,gold,w+.015,h+.02,d*.13,px,h/2+.01,pz,.015)}
+ gift(-.63,.18,.62,.48,.58);gift(.56,.23,.7,.58,.62);gift(-.05,-.54,.72,.38,.52);
+ const light=new THREE.PointLight('#ffd17b',1.4,5,2);light.position.set(0,1.75,.2);g.add(light);
+ compactMeshes(g);return g;
+}
+
 export function makeChair(x,z,color,parent,mats){
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
  softBox(g,color,1.3,.23,1.19,0,.68,0,.1);

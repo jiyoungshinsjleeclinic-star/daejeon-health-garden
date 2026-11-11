@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
-import {roundedGeometry,compactMeshes,makePerson,makeChair,makeTable,makePlant} from '../center-visuals.js';
+import {roundedGeometry,compactMeshes,makePerson,makeChair,makeTable,makePlant,makeChristmasTree} from '../center-visuals.js';
 import {makeDevice} from '../center-models.js';
 import {CARDIO_EQUIPMENT} from '../center-plan.js';
 
@@ -27,7 +27,7 @@ for(const arm of person.arms){assert(arm.userData.elbow?.parent===arm);assert(!a
 for(const leg of person.legs){assert(leg.parent===person.g);leg.rotation.x=-Math.PI/2;leg.userData.knee.rotation.x=Math.PI/2}
 finiteModel(person.g);
 person.g.position.y=-.27;for(const leg of person.legs){leg.rotation.x=-1.2;leg.userData.knee.rotation.x=1.2}person.g.updateMatrixWorld(true);for(const shoe of person.shoes){const footBounds=new THREE.Box3().setFromObject(shoe);assert(footBounds.min.y>=-.02&&footBounds.min.y<.04)}assert(Math.abs(person.arms[0].getWorldPosition(new THREE.Vector3()).y-1.2)<1e-6);
-for(const build of [p=>makeChair(0,0,mats.fabric,p,mats),p=>makeTable(0,0,2.5,p,mats),p=>makePlant(0,0,1,p,mats)])finiteModel(build(new THREE.Group()));
+for(const build of [p=>makeChair(0,0,mats.fabric,p,mats),p=>makeTable(0,0,2.5,p,mats),p=>makePlant(0,0,1,p,mats),p=>makeChristmasTree(0,0,1,p,mats)])finiteModel(build(new THREE.Group()));
 for(const type of ['coffee','water','bloodpressure','inbody','bloodtest','bed','massage','ceragem','bike','treadmill','weights','heightweight','arterial','cholesterol','glucose','hba1c']){
  const device=makeDevice(type,0,0,{parent:new THREE.Group(),box,cylinder,sphere,mat,mats});finiteModel(device);
  if(type==='heightweight'){const head=device.userData.heightHead;assert(head?.parent===device);const bounds=finiteModel(head);head.position.y-=.3;const lowered=finiteModel(head);assert(Math.abs(bounds.max.y-lowered.max.y-.3)<1e-6)}

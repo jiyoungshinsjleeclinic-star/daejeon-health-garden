@@ -6,7 +6,7 @@ import {createGlucoseScene} from './cardio-glucose-scene.js?v=glucose-1';
 import {createCholesterolScene} from './cardio-cholesterol-scene.js?v=cholesterol-2';
 import {isReceptionApproach,outsideReceptionArea,inReceptionFront} from './reception-flow.js?v=return-1';
 import {makeDevice} from './center-models.js?v=cholesterol-2';
-import {roundedGeometry,makeMaterials,makePerson,makeChair,makeTable,makePlant} from './center-visuals.js?v=bp-1';
+import {roundedGeometry,makeMaterials,makePerson,makeChair,makeTable,makePlant,makeChristmasTree} from './center-visuals.js?v=christmas-1';
 import {CENTER_PLAN,planPortal,CARDIO_EQUIPMENT,WAITING_SOFA,RECEPTION_RETURN_POINT} from './center-plan.js?v=return-1';
 const host=document.querySelector('#world'),status=document.querySelector('#world-status');
 try { init(); } catch(e) { status.textContent='3D 공간을 불러오지 못했어요. 아래 체험 메뉴는 그대로 이용할 수 있습니다.';host.classList.add('failed');console.error(e); }
@@ -100,6 +100,7 @@ sofaSection(1.35,3.4,-13.25,6.2);box(.22,1,3.4,-13.9,1.15,6.2,sofaMat);
 for(const x of [-12.8,-11.2,-9.6,-8])box(.06,.01,1.1,x,.94,7.5,sofaMat);
 const wt=f.waitingTable;box(2.7,.65,1.3,wt.x,.35,wt.z,'#6f9ca8');box(2.8,.1,1.4,wt.x,.73,wt.z,'#526d74');for(const x of [-.7,0,.7])box(.45,.025,.65,wt.x+x,.8,wt.z,mats.white);
 const waitingLabel=label('대기실',-10.4,2.4,7,'#305d4e',3);register(waitingLabel,'waiting-seat');
+makeChristmasTree(-4.8,4.1,1,lobby,mats);
 for(const [w,d,x,z] of [[6.8,1.5,-10.5,7.5],[1.5,3.4,-13.25,6.2]])register(box(w,1.3,d,x,.75,z,new THREE.MeshBasicMaterial({visible:false})),'waiting-seat');
 const ent=CENTER_PLAN.entrance,glass=new THREE.MeshStandardMaterial({color:'#b6d2d1',transparent:true,opacity:.2,roughness:.2});
 for(const x of [ent.x-1,ent.x+1])box(1.9,2.8,.08,x,1.45,ent.z,glass);
