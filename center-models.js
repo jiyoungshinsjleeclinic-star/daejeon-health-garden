@@ -4,6 +4,7 @@ import {createBPDisplay} from './bp-display.js?v=bp-1';
 import {createGlucoseDisplay} from './glucose-display.js?v=glucose-1';
 import {createCholesterolDisplay} from './cholesterol-display.js?v=cholesterol-2';
 import {createHbA1cDisplay} from './hba1c-display.js?v=hba1c-1';
+import {createArterialDisplay} from './arterial-display.js?v=arterial-1';
 export function makeDevice(type,x,z,{parent,box,cylinder,sphere,mat,mats}){
 const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);const b=(w,h,d,x,y,z,m)=>box(w,h,d,x,y,z,m,g),c=(r,h,x,y,z,m)=>cylinder(r,h,x,y,z,m,g),s=(r,x,y,z,m)=>sphere(r,x,y,z,m,g);const metal=new THREE.MeshStandardMaterial({color:'#b4bdc0',metalness:.8,roughness:.26}),black=mat('#252b2e'),blue=mat('#498eb5'),cream=mat('#bcbfb7');
 function ring(r,t,x,y,z,m){const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,28),m);o.position.set(x,y,z);g.add(o);return o}
@@ -23,7 +24,8 @@ if(type==='arterial'){
  for(const y of [.36,.73,1.05])b(.95,.07,.72,0,y,0,mats.white);
  b(.72,.3,.48,0,.56,.03,black);b(.6,.13,.035,0,.58,.29,metal);
  const head=b(.95,.35,.64,0,1.31,.02,mats.white);head.rotation.x=.13;
- b(.62,.2,.027,-.09,1.34,.365,black);b(.5,.12,.012,-.09,1.36,.385,mats.blue);
+ b(.62,.2,.027,-.09,1.34,.365,black);
+ if(typeof document!=='undefined'){const display=createArterialDisplay();display.reset();const screen=new THREE.Mesh(new THREE.PlaneGeometry(.5,.32),display.material);screen.position.set(-.09,1.36,.49);g.add(screen);g.userData.arterialDisplay=display;g.userData.arterialScreen=screen}else b(.5,.12,.012,-.09,1.36,.385,mats.blue);
  for(const [x,color] of [[.33,'#76988c'],[.33,'#b59c62']])c(.035,.018,x,1.51,color==='#76988c'?.06:.2,mat(color));
  b(1.05,.13,.1,0,1.97,-.27,metal);
  for(const [sx,color] of [[-.25,'#73889d'],[.25,'#a27e71']]){
