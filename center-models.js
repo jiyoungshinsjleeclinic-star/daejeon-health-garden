@@ -28,10 +28,12 @@ if(type==='arterial'){
  if(typeof document!=='undefined'){const display=createArterialDisplay();display.reset();const screen=new THREE.Mesh(new THREE.PlaneGeometry(.5,.32),display.material);screen.position.set(-.09,1.36,.49);g.add(screen);g.userData.arterialDisplay=display;g.userData.arterialScreen=screen}else b(.5,.12,.012,-.09,1.36,.385,mats.blue);
  for(const [x,color] of [[.33,'#76988c'],[.33,'#b59c62']])c(.035,.018,x,1.51,color==='#76988c'?.06:.2,mat(color));
  b(1.05,.13,.1,0,1.97,-.27,metal);
- for(const [sx,color] of [[-.25,'#73889d'],[.25,'#a27e71']]){
-  const cuff=b(.3,.4,.25,sx,1.77,-.19,mat(color));cuff.rotation.z=sx;
-  cable([[sx,1.78,-.1],[sx*.9,1.2,.42],[sx,.8,.45],[sx,1.29,.22]],color);
+ const cuffProps=[],cuffHomes=[],cuffCables=[],cuffData=[[-.25,1.77,-.19,'#73889d'],[.25,1.77,-.19,'#a27e71'],[-.42,1.39,.08,'#8399ad'],[.42,1.39,.08,'#b18b7d']];
+ for(let i=0;i<cuffData.length;i++){
+  const [x,y,z,color]=cuffData[i],holder=new THREE.Group();holder.position.set(x,y,z);holder.rotation.z=x<0?-.22:.22;g.add(holder);const cuffMat=mat(color),pad=new THREE.Mesh(new THREE.BoxGeometry(.3,.4,.23),cuffMat);pad.castShadow=pad.receiveShadow=true;holder.add(pad);const strap=new THREE.Mesh(new THREE.BoxGeometry(.36,.09,.27),black);strap.position.y=-.08;strap.castShadow=true;holder.add(strap);cuffProps.push(holder);cuffHomes.push({position:holder.position.clone(),quaternion:holder.quaternion.clone()});
+  const points=new Float32Array([-.36+i*.24,1.08,.34,x,y,z]),geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(points,3));const line=new THREE.Line(geometry,new THREE.LineBasicMaterial({color,linewidth:2}));g.add(line);cuffCables.push(line);
  }
+ g.userData.arterialCuffProps=cuffProps;g.userData.arterialCuffHomes=cuffHomes;g.userData.arterialCuffCables=cuffCables;
 }
 if(type==='cholesterol'||type==='glucose'){
  const lipid=type==='cholesterol',w=lipid?.4:.31,d=lipid?.69:.58;
