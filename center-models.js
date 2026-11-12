@@ -71,6 +71,12 @@ if(type==='bloodpressure'){
 if(type==='coffee'){b(1.3,.8,1,0,.4,0,mats.white);b(.95,1.35,.7,0,1.48,0,black);b(.65,.5,.05,0,1.82,.38,mats.dark);b(.45,.1,.2,0,1.4,.45,metal);b(.75,.06,.5,0,.94,.28,black);c(.13,.22,0,1.08,.5,mats.white);b(.4,.18,.5,0,2.22,0,black)}
 if(type==='water'){b(.95,2.35,.85,0,1.2,0,mats.white);b(.7,.65,.05,0,1.68,.45,mats.blue);b(.65,.4,.15,0,.9,.4,metal);b(.7,.05,.45,0,.65,.45,metal)}
 if(type==='inbody'){b(.95,.13,1.15,0,.1,0,black);for(const sx of [-.27,.27])b(.18,.02,.55,sx,.18,.1,metal);c(.1,1.65,0,.9,-.35,metal);b(.7,.45,.15,0,1.95,-.35,metal);b(.55,.3,.02,0,1.96,-.26,black);for(const sx of [-.65,.65]){const h=b(.07,.75,.07,sx,1.1,-.15,black);h.rotation.z=sx<0?-.65:.65}}
+if(type==='posture'){
+ b(1.75,.035,3.2,0,.04,.45,mat('#24262b'));b(1.88,.025,.12,0,.065,-1.12,black);
+ for(let i=0;i<7;i++){b(.5,.008,.018,0,.065,-.82+i*.42,mats.white);for(const sx of [-.72,.72])b(.12,.01,.04,sx,.07,-.82+i*.42,i%2?mats.white:mat('#c96277'))}
+ b(.22,.1,.58,0,.11,-1.28,black);c(.075,2.75,0,1.48,-1.38,black);b(.17,.18,.13,0,1.5,-1.29,metal);b(.23,.13,.16,0,2.66,-1.28,black);
+ for(const y of [.52,1.02,1.52,2.02])b(.055,.08,.035,0,y,-1.285,mats.blue);
+}
 if(type==='bloodtest'){b(1,.12,.7,0,.08,0,mats.white);c(.08,.9,0,.55,0,metal);b(1.3,.1,1,0,1.05,0,mats.white);b(.8,.7,.75,0,1.45,0,mats.white);b(.65,.45,.04,0,1.48,.4,black);b(.52,.3,.02,0,1.5,.43,mats.blue)}
 if(type==='bed'){b(1.65,.22,3.3,0,.62,0,mats.wood);for(const sx of [-.68,.68])for(const sz of [-1.4,1.4])b(.16,.55,.16,sx,.28,sz,mats.wood);b(1.5,.2,3.15,0,.83,0,mat('#191b1c'));b(1.05,.16,.65,0,1.01,-1.08,mat('#65574e'))}
 if(type==='massage'){b(1.4,.5,2,0,.3,0,cream);b(1.15,.35,1.2,0,.75,0,cream);const back=b(1.3,1.6,.45,0,1.45,-.7,cream);back.rotation.x=-.22;for(const sx of [-.75,.75]){b(.3,.7,1.7,sx,.75,.05,cream);b(.2,.14,1.3,sx,1.14,.05,metal)}const foot=b(1.1,.35,1,0,.58,1.05,cream);foot.rotation.x=.2;b(.85,.25,.25,0,2.1,-.58,cream)}
