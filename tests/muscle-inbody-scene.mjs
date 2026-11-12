@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import * as THREE from '../vendor/three.module.js';
+import {makePerson} from '../center-visuals.js';
+import {createMuscleInBodyScene,INBODY_SEQUENCE} from '../muscle-inbody-scene.js';
+import {INBODY_EXAMPLES} from '../inbody-display.js';
+
+const mats=Object.fromEntries(['white','wood','green','dark','blue','skin','metal','leather','fabric','leaf','yellow'].map(name=>[name,new THREE.MeshStandardMaterial({color:'#aabbcc'})]));
+const root=new THREE.Group(),visitor=makePerson('#cb8c99',root,mats,{gender:'female'}),device=new THREE.Group();device.position.set(-6.7,0,4.4);root.add(device);const screen=new THREE.Group();screen.position.set(0,1.96,-.248);device.add(screen);device.userData.inbodyScreen=screen;
+const display={value:{mode:'idle',example:true},reset(){this.value={mode:'idle',example:true}},update(mode,gender){this.value={mode,gender,...INBODY_EXAMPLES[gender],example:true}}};device.userData.inbodyDisplay=display;
+function pose(person,on){person.legs.forEach(leg=>{leg.rotation.x=on?-Math.PI/2:0;leg.userData.knee.rotation.x=on?Math.PI/2:0});person.arms.forEach(arm=>{arm.rotation.x=on?-.3:0;arm.rotation.z=0;arm.userData.elbow.rotation.x=0})}
+const stages=[];let completed=0;const scene=createMuscleInBodyScene(visitor,device,pose,stage=>stages.push(stage),()=>{completed++;pose(visitor,true)},()=>visitor.gender);scene.start();const start=performance.now();let elapsed=0;
+for(const [stage,seconds] of INBODY_SEQUENCE){scene.update(start+(elapsed+seconds*.7)*1000);assert.equal(scene.stage,stage);const snap=scene.snapshot();if(['weight-ready','weight-result','handle-instruction','handles','measuring','result','finished'].includes(stage)){assert(snap.barefoot);assert(snap.onPlatform)}if(stage==='weight-result'){assert.equal(snap.display.weight,55);assert.equal(snap.display.mode,'weight')}if(['handles','measuring','result'].includes(stage))assert(snap.gripping);if(stage==='result'){assert.equal(snap.display.mode,'result');assert.equal(snap.display.score,'78점');assert(snap.display.example);const shot=scene.camera(.55);assert(Number.isFinite(shot.position.x));assert(shot.position.z-shot.focus.z>1.3)}elapsed+=seconds}
+scene.update(start+(elapsed+1)*1000);assert.equal(scene.stage,'complete');assert.equal(completed,1);assert(scene.snapshot().shoesOn);assert.equal(visitor.g.position.z,2);assert(stages.includes('walking-back'));
+visitor.setGender('male');scene.start();scene.update(performance.now()+18000);assert.equal(scene.stage,'weight-result');assert.equal(scene.snapshot().display.weight,70);scene.cancel();assert.equal(scene.stage,'idle');assert(scene.snapshot().shoesOn);assert.equal(visitor.g.position.z,2);scene.dispose();
+console.log('InBody sequence: explanation route, shoes, gendered weight, handles, example composition results and seated return passed.');
