@@ -1,4 +1,4 @@
-import {speakStep,hideSpeech} from './center-speech.js?v=cholesterol-2';
+import {speakStep,hideSpeech} from './center-speech.js?v=speech-2';
 
 let inMuscle=false,wasSeated=false;const dialog=document.querySelector('#dialog');
 const greeting='안녕하세요. 어떤 상담을 받고 싶으세요?';
@@ -21,6 +21,6 @@ document.addEventListener('muscle-greeting',openMuscleGreeting);
 document.addEventListener('muscle-inbody-stage',event=>{
  if(!inMuscle)return;const state=event.detail,invitation='체성분검사를 위해 인바디 측정기 쪽으로 와 주세요. 신발을 벗고 인바디 위에 올라와 주세요. 움직이지 마시고 손잡이를 잡지 마세요. 체중을 측정하겠습니다.';
  const messages={invitation,walking:invitation,'shoes-off':'신발을 벗고 인바디 발판 위에 올라와 주세요.','stepping-on':'인바디 기계 쪽을 바라보며 움직이지 말고 서 주세요.','weight-ready':'움직이지 마시고 손잡이를 잡지 마세요. 체중을 측정하겠습니다.','weight-result':'체중 측정 예시가 화면에 표시되었습니다.','handle-instruction':'손잡이를 양손바닥으로 잡고 양팔을 벌려 겨드랑이가 몸에 닿지 않게 해 주세요. 인바디를 측정하겠습니다.',handles:'손잡이를 잡고 양팔과 겨드랑이 사이를 벌려 주세요.',measuring:'움직이지 말고 잠시 자세를 유지해 주세요. 화면의 값은 모두 측정 예시입니다.',result:'측정 결과가 화면에 표시되었습니다. 모든 값은 측정 예시입니다.',finished:'인바디 측정이 끝났습니다. 손잡이를 놓고 내려오세요.','stepping-off':'인바디 발판에서 내려와 주세요.','shoes-on':'신발을 신고 다시 상담 의자로 돌아가 주세요.','walking-back':'상담 의자로 돌아가 앉아 주세요.',sitting:'상담 의자에 앉아 주세요.',complete:'인바디 측정 동작 체험이 끝났습니다. 편하게 앉아 계세요.',cancelled:'인바디 측정 동작 체험을 중지했습니다.'};
- const done=['complete','cancelled'].includes(state),screenResult=['weight-result','result'].includes(state);speakStep(messages[state]||'',{placement:screenResult?'screen-clear':'auto',persist:state==='result'});showStage(messages[state]||'',done?'상담 다시 선택하기':'측정 체험 중지',done?'muscle-greeting':'muscle-inbody-cancel');document.querySelector('#talk-staff').disabled=!done;
+ const done=['complete','cancelled'].includes(state),screenResult=['weight-result','result'].includes(state);speakStep(messages[state]||'',{placement:screenResult?'screen-clear':'inbody-clear',persist:state==='result'});showStage(messages[state]||'',done?'상담 다시 선택하기':'측정 체험 중지',done?'muscle-greeting':'muscle-inbody-cancel');document.querySelector('#talk-staff').disabled=!done;
 });
 document.addEventListener('muscle-inbody-cancel',()=>document.dispatchEvent(new Event('cardio-measurement-cancel')));

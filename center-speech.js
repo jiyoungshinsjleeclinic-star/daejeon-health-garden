@@ -3,8 +3,8 @@ const speaker=document.createElement('strong'),line=document.createElement('p'),
 let timer=0,lastText='';
 const world=document.querySelector('#world');
 function positionSpeech(){
- const clear=speech.dataset.placement==='screen-clear',mobile=world.clientWidth<620;
- speech.style.left=world.offsetLeft+(clear?(mobile?12:24):world.clientWidth/2)+'px';speech.style.top=world.offsetTop+world.clientHeight*(clear?(mobile?.59:.64):.46)+'px';speech.style.width=clear?(mobile?Math.max(190,world.clientWidth*.54):Math.min(370,world.clientWidth*.38))+'px':'';speech.style.maxWidth=clear?(mobile?Math.max(190,world.clientWidth*.54):Math.min(370,world.clientWidth*.38))+'px':Math.max(200,world.clientWidth-24)+'px';speech.style.setProperty('--speech-max-height',Math.max(110,world.clientHeight-(clear?120:170))+'px')
+ const placement=speech.dataset.placement,clear=placement==='screen-clear',inbody=placement==='inbody-clear',mobile=world.clientWidth<620;
+ speech.style.left=world.offsetLeft+(clear||inbody?(mobile?12:24):world.clientWidth/2)+'px';speech.style.top=inbody?world.offsetTop+(mobile?54:24)+'px':world.offsetTop+world.clientHeight*(clear?(mobile?.59:.64):.46)+'px';speech.style.width=clear?(mobile?Math.max(190,world.clientWidth*.54):Math.min(370,world.clientWidth*.38))+'px':inbody?(mobile?Math.max(200,world.clientWidth-24):Math.min(320,world.clientWidth*.27))+'px':'';speech.style.maxWidth=clear?(mobile?Math.max(190,world.clientWidth*.54):Math.min(370,world.clientWidth*.38))+'px':inbody?(mobile?Math.max(200,world.clientWidth-24):Math.min(320,world.clientWidth*.27))+'px':Math.max(200,world.clientWidth-24)+'px';speech.style.setProperty('--speech-max-height',Math.max(110,world.clientHeight-(clear||inbody?120:170))+'px')
 }
 new ResizeObserver(positionSpeech).observe(world);
 export function hideSpeech(){clearTimeout(timer);speech.hidden=true;speech.dataset.placement='auto';lastText=''}

@@ -1,6 +1,6 @@
 .cardio-speech{position:absolute;z-index:6;top:48%;left:50%;transform:translate(-50%,-50%);width:min(560px,calc(100% - 32px));padding:0;border:2px solid #2c6555;border-radius:8px;background:#fff;color:#173b32;box-shadow:0 6px 28px #12352b30;max-height:calc(100% - 170px);overflow:visible}
 .cardio-speech::after{content:'';position:absolute;bottom:-8px;left:50%;width:13px;height:13px;background:#fff;border-right:2px solid #2c6555;border-bottom:2px solid #2c6555;transform:rotate(45deg)}
-.cardio-speech[data-placement="screen-clear"]{transform:none}.cardio-speech[data-placement="screen-clear"]::after{display:none}
+.cardio-speech[data-placement="screen-clear"],.cardio-speech[data-placement="inbody-clear"]{transform:none}.cardio-speech[data-placement="screen-clear"]::after,.cardio-speech[data-placement="inbody-clear"]::after{display:none}
 .cardio-speech[hidden]{display:none}.cardio-speech strong{display:block;font-size:14px;color:#2c6555}.cardio-speech p{margin:8px 0 0;font-size:18px;line-height:1.65;white-space:pre-line;overflow-wrap:anywhere;font-weight:600}
 .speech-close{position:absolute;top:4px;right:4px;width:40px;height:40px;border:0;background:transparent;color:#2c6555;font-size:26px;cursor:pointer}.speech-close:focus-visible{outline:2px solid #2c6555;outline-offset:-3px}
 #bp-stop[hidden]{display:none}#bp-stop{color:#a13237;border-color:#b66f73}

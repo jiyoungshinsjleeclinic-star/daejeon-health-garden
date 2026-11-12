@@ -1,4 +1,4 @@
-import {speakStep,hideSpeech} from './center-speech.js?v=cholesterol-2';
+import {speakStep,hideSpeech} from './center-speech.js?v=speech-2';
 let inCardio=false,wasSeated=false;
 const dialog=document.querySelector('#dialog');
 const stopBP=document.createElement('button');stopBP.id='bp-stop';stopBP.className='icon-btn';stopBP.hidden=true;stopBP.type='button';stopBP.title='측정 체험 중지';stopBP.setAttribute('aria-label','측정 체험 중지');stopBP.innerHTML='<i data-lucide="square"></i>';stopBP.onclick=()=>document.dispatchEvent(new Event('cardio-measurement-cancel'));document.querySelector('.world-tools').append(stopBP);window.lucide?.createIcons();
