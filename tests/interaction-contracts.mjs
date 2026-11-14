@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [html,world,speech,sceneCss]=await Promise.all([
+const [html,world,speech,sceneCss,muscleTalk,cardioTalk,mobileCss]=await Promise.all([
  readFile(new URL('../index.html',import.meta.url),'utf8'),
  readFile(new URL('../world.js',import.meta.url),'utf8'),
  readFile(new URL('../center-speech.js',import.meta.url),'utf8'),
- readFile(new URL('../cardio-scene.css',import.meta.url),'utf8')
+ readFile(new URL('../cardio-scene.css',import.meta.url),'utf8'),
+ readFile(new URL('../muscle-talk.js',import.meta.url),'utf8'),
+ readFile(new URL('../cardio-talk.js',import.meta.url),'utf8'),
+ readFile(new URL('../mobile-view.css',import.meta.url),'utf8')
 ]);
 
 assert(!/gpt-guide|GPT에게 자유롭게 묻기/i.test(html));
@@ -14,6 +17,10 @@ assert(!speech.includes('scrollIntoView'));
 assert(sceneCss.includes('.cardio-speech{position:relative'));
 assert(sceneCss.includes('.cardio-speech[hidden]{display:block;visibility:hidden'));
 assert(sceneCss.includes('height:92px'));
+assert(mobileCss.includes("--mobile-canvas-height:max(380px,calc(var(--mobile-scene-height,calc(100dvh - 120px)) - 28px))"));
+assert(muscleTalk.includes("document.querySelector('#counsel-status').textContent=''"));
+assert(muscleTalk.includes("document.querySelector('#chat-bubble').textContent=''"));
+assert(cardioTalk.includes("document.querySelector('#counsel-status').textContent=''"));
 assert(world.includes('if(!isBlocked(nx,avatar.g.position.z))'));
 assert(world.includes('if(!isBlocked(avatar.g.position.x,nz))'));
 assert(world.includes('pathfinder.disableCornerCutting()'));

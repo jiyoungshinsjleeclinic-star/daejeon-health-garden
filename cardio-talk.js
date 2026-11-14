@@ -1,4 +1,4 @@
-import {speakStep,hideSpeech} from './center-speech.js?v=speech-4';
+import {speakStep,hideSpeech} from './center-speech.js?v=speech-7';
 let inCardio=false,wasSeated=false;
 const dialog=document.querySelector('#dialog');
 const stopBP=document.createElement('button');stopBP.id='bp-stop';stopBP.className='icon-btn';stopBP.hidden=true;stopBP.type='button';stopBP.title='측정 체험 중지';stopBP.setAttribute('aria-label','측정 체험 중지');stopBP.innerHTML='<i data-lucide="square"></i>';stopBP.onclick=()=>document.dispatchEvent(new Event('cardio-measurement-cancel'));document.querySelector('.world-tools').append(stopBP);window.lucide?.createIcons();
@@ -23,8 +23,8 @@ document.addEventListener('counsel-room-change',e=>{inCardio=e.detail.room?.id==
 document.addEventListener('counsel-seat-change',e=>{const newlySeated=e.detail.seated&&!wasSeated;wasSeated=e.detail.seated;if(inCardio&&newlySeated&&!e.detail.resume){hideSpeech();openCardioGreeting()}});
 document.addEventListener('cardio-greeting',openCardioGreeting);
 function showStage(message,label,event){
- document.querySelector('#counsel-status').textContent=message;document.querySelector('#world-status').textContent=message;
- document.querySelector('#chat-area').hidden=false;document.querySelector('#chat-bubble').textContent=message;document.querySelector('#chat-answer').replaceChildren();const actions=document.querySelector('#chat-choices'),hadFocus=actions.contains(document.activeElement);actions.replaceChildren();
+ document.querySelector('#counsel-status').textContent='';document.querySelector('#world-status').textContent=message;
+ document.querySelector('#chat-area').hidden=false;document.querySelector('#chat-bubble').textContent='';document.querySelector('#chat-answer').replaceChildren();const actions=document.querySelector('#chat-choices'),hadFocus=actions.contains(document.activeElement);actions.replaceChildren();
  const button=document.createElement('button');button.className='chat-choice';button.textContent=label;button.onclick=()=>document.dispatchEvent(new Event(event));actions.append(button);if(hadFocus)button.focus({preventScroll:true});
 }
 document.addEventListener('cardio-waist-stage',e=>{

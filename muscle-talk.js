@@ -1,4 +1,4 @@
-import {speakStep,hideSpeech} from './center-speech.js?v=speech-4';
+import {speakStep,hideSpeech} from './center-speech.js?v=speech-7';
 
 let inMuscle=false,wasSeated=false;const dialog=document.querySelector('#dialog');
 const greeting='안녕하세요. 어떤 상담을 받고 싶으세요?';
@@ -14,7 +14,7 @@ function showExplanation(type){
  if(type==='inbody'){const begin=document.createElement('button');begin.className='btn';begin.textContent='인바디검사 시작';begin.onclick=()=>{dialog.close();document.dispatchEvent(new Event('muscle-inbody-start'));document.querySelector('.world-shell').scrollIntoView({block:'start',behavior:'auto'})};choices.append(begin)}
  const back=document.createElement('button');back.className='btn light';back.textContent='다시 선택하기';back.onclick=openMuscleGreeting;choices.append(back);choices.firstElementChild?.focus();
 }
-function showStage(message,label,event){document.querySelector('#counsel-status').textContent=message;document.querySelector('#world-status').textContent=message;document.querySelector('#chat-area').hidden=false;document.querySelector('#chat-bubble').textContent=message;document.querySelector('#chat-answer').replaceChildren();const actions=document.querySelector('#chat-choices');actions.replaceChildren();const button=document.createElement('button');button.className='chat-choice';button.textContent=label;button.onclick=()=>document.dispatchEvent(new Event(event));actions.append(button)}
+function showStage(message,label,event){document.querySelector('#counsel-status').textContent='';document.querySelector('#world-status').textContent=message;document.querySelector('#chat-area').hidden=false;document.querySelector('#chat-bubble').textContent='';document.querySelector('#chat-answer').replaceChildren();const actions=document.querySelector('#chat-choices');actions.replaceChildren();const button=document.createElement('button');button.className='chat-choice';button.textContent=label;button.onclick=()=>document.dispatchEvent(new Event(event));actions.append(button)}
 document.addEventListener('counsel-room-change',event=>{inMuscle=event.detail.room?.id==='muscle';wasSeated=false;hideSpeech();if(dialog.open&&document.querySelector('[data-muscle-dialogue]'))dialog.close()});
 document.addEventListener('counsel-seat-change',event=>{const newlySeated=event.detail.seated&&!wasSeated;wasSeated=event.detail.seated;if(inMuscle&&newlySeated&&!event.detail.resume)openMuscleGreeting()});
 document.addEventListener('muscle-greeting',openMuscleGreeting);

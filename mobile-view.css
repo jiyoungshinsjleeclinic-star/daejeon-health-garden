@@ -3,8 +3,8 @@
  header{min-height:56px;padding:8px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left));gap:8px}
  .brand{font-size:16px;min-width:0}.brand small{font-size:10px}header nav{gap:8px;flex-shrink:0}header nav .btn{padding:8px 10px;font-size:11px}header nav .text-btn,header nav>a{font-size:11px}
  .welcome{padding:8px 0}.welcome .eyebrow{display:none}.welcome h1{font-size:17px;line-height:1.4}.welcome p{font-size:11px}.welcome .stamp-mini{display:none}
- .world-shell{--mobile-nav-height:calc(48px + env(safe-area-inset-bottom,0px));--mobile-canvas-height:max(300px,calc(var(--mobile-scene-height,calc(100dvh - 120px)) - 108px))}
- .world-shell:has(.counsel-panel:not([hidden])){--mobile-canvas-height:max(230px,calc(var(--mobile-scene-height,calc(100dvh - 120px)) * .62 - 108px))}
+ .world-shell{--mobile-nav-height:calc(48px + env(safe-area-inset-bottom,0px));--mobile-canvas-height:max(380px,calc(var(--mobile-scene-height,calc(100dvh - 120px)) - 28px))}
+ .world-shell:has(.counsel-panel:not([hidden])){--mobile-canvas-height:max(380px,calc(var(--mobile-scene-height,calc(100dvh - 120px)) - 28px))}
  .world-shell .world,.world-shell:has(.counsel-panel:not([hidden])) .world,.world-shell:fullscreen .world,.world-shell:fullscreen:has(.counsel-panel:not([hidden])) .world{width:100%;height:var(--mobile-canvas-height);min-height:0;max-height:none}
  .world-shell .world-tools,.world-shell:has(.counsel-panel:not([hidden])) .world-tools,.world-shell:fullscreen .world-tools{top:8px;right:max(8px,env(safe-area-inset-right));left:auto;display:flex;flex-wrap:nowrap;gap:4px;max-width:none}
  .world-tools .icon-btn,#world-more-tools{display:grid;width:44px;height:44px;flex:0 0 44px}.world-tools .icon-btn svg{width:19px;height:19px}
@@ -29,7 +29,7 @@
 }
 @media(max-width:1100px) and (orientation:landscape) and (max-height:500px){
  header{min-height:44px;padding-top:4px;padding-bottom:4px}.brand small,.welcome{display:none}
- .world-shell:has(.counsel-panel:not([hidden])){--mobile-canvas-height:max(230px,calc(var(--mobile-scene-height,calc(100dvh - 48px)) - 94px))}
+ .world-shell:has(.counsel-panel:not([hidden])){--mobile-canvas-height:max(300px,calc(var(--mobile-scene-height,calc(100dvh - 48px)) - 24px))}
  .world-shell .world-tools,.world-shell:has(.counsel-panel:not([hidden])) .world-tools,.world-shell:fullscreen .world-tools{left:max(8px,env(safe-area-inset-left));right:auto}
  .world-extra-tools{left:0;right:auto}.world-hud{display:none}
  .world-shell:has(.world-tools[data-expanded=true]) .move-pad,.world-shell:has(.world-tools[data-expanded=true]) .avatar-control{visibility:hidden}
