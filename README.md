@@ -7,6 +7,22 @@
 별도의 빌드, 서버, Google Drive 연결이 필요하지 않습니다.
 저장소 Settings > Pages에서 Deploy from a branch, main, /(root)를 선택합니다.
 
+사이트 공개와 3D 체험은 계속 GitHub Pages가 담당합니다. 상담실의 `GPT에게 자유롭게 묻기`는 선택형 안내와 분리된 보조 기능이며, 질문을 보낼 때만 별도의 보안 중계 API를 호출합니다. OpenAI API 키는 브라우저나 GitHub Pages에 넣지 않고 중계 API의 `OPENAI_API_KEY` 환경변수에만 보관합니다. `index.html`의 `gpt-guide-endpoint` 메타 값이 비어 있으면 GPT 전송은 실행되지 않고 기존 선택형 안내만 정상 작동합니다. Cloudflare Pages는 사용하지 않습니다.
+
+GPT 안내는 센터 이용에 관한 일반적인 질문만 다루며 의료 진단, 검사 수치 판정, 치료 지시, 예약 확정 또는 실제 방문 기록 조회를 하지 않습니다. 질문창은 이름·연락처·회사명·생년월일·검사 결과를 입력하지 않도록 안내하고, 전화번호·주민등록번호·이메일 등으로 보이는 내용은 브라우저와 API 양쪽에서 차단합니다. 실제 상담은 `042-936-9571`로 문의합니다.
+
+### GPT 중계 API 연결
+
+`api/guide.mjs`는 Vercel 형식의 Node 서버리스 함수입니다. 이 API만 별도 서버에 배포하더라도 사용자에게 보이는 사이트와 공식 공개 주소는 계속 GitHub Pages를 사용합니다. Cloudflare Pages는 필요하지 않습니다.
+
+1. API 배포 서비스의 비밀 환경변수에 `OPENAI_API_KEY`를 등록합니다.
+2. 필요하면 `OPENAI_MODEL`을 지정합니다. 기본값은 `gpt-4.1-mini`입니다.
+3. 추가 허용 출처가 있으면 `GPT_GUIDE_ORIGINS`에 쉼표로 구분해 등록합니다. 현재 GitHub Pages 출처는 기본 허용됩니다.
+4. 배포 서비스에서 `/api/guide`에 요청 횟수 제한을 설정해 공개 API의 오용과 비용 급증을 막습니다.
+5. 배포된 전체 API 주소를 `index.html`의 `gpt-guide-endpoint` 메타 값에 입력합니다.
+
+API 연결 전에는 메타 값을 비워 둡니다. 이 경우 GPT 질문창은 표시되지 않고 질문도 외부로 전송되지 않으며 기존 선택형 안내만 이용할 수 있습니다. API 키를 HTML, JavaScript, Git 커밋 또는 GitHub Pages 설정에 직접 넣지 않습니다.
+
 ## 인물과 재질
 
 `center-visuals.js`는 관절형 인물, 둥근 모서리의 가구, 직물·나뭇결 재질과 잎 모양 식물을 구성합니다. 실사 인물의 복제 모델이 아닌 부드러운 스타일의 캐릭터입니다. 걷기와 착석 시 무릎 관절을 사용하며, 정적인 부품은 Three.js의 `BufferGeometryUtils`로 합쳐 렌더링 호출을 줄입니다. 물건 배치와 커피머신·정수기의 통로 방향은 유지합니다.

@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/guide.mjs": {
+      "maxDuration": 15
+    }
+  }
+}
