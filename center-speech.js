@@ -3,16 +3,10 @@ const speaker=document.createElement('strong'),line=document.createElement('p'),
 let timer=0,lastText='';
 const world=document.querySelector('#world');
 world.insertAdjacentElement('afterend',speech);
-function positionSpeech(){
- const placement=speech.dataset.placement,clear=placement==='screen-clear',inbody=placement==='inbody-clear',mobile=world.clientWidth<620;
- if(mobile){speech.style.left='';speech.style.top='';speech.style.width='';speech.style.maxWidth='';speech.style.setProperty('--speech-max-height','150px');return}
- speech.style.left=world.offsetLeft+(clear||inbody?(mobile?12:24):world.clientWidth/2)+'px';speech.style.top=inbody?world.offsetTop+(mobile?54:24)+'px':world.offsetTop+world.clientHeight*(clear?(mobile?.59:.64):.46)+'px';speech.style.width=clear?(mobile?Math.max(190,world.clientWidth*.54):Math.min(370,world.clientWidth*.38))+'px':inbody?(mobile?Math.max(200,world.clientWidth-24):Math.min(270,world.clientWidth*.24))+'px':'';speech.style.maxWidth=clear?(mobile?Math.max(190,world.clientWidth*.54):Math.min(370,world.clientWidth*.38))+'px':inbody?(mobile?Math.max(200,world.clientWidth-24):Math.min(270,world.clientWidth*.24))+'px':Math.max(200,world.clientWidth-24)+'px';speech.style.setProperty('--speech-max-height',Math.max(110,world.clientHeight-(clear||inbody?120:170))+'px')
-}
-new ResizeObserver(positionSpeech).observe(world);
 export function hideSpeech(){clearTimeout(timer);speech.hidden=true;speech.dataset.placement='auto';lastText=''}
 export function speak(text,{name='안내원',duration=0,placement='auto'}={}){
  if(text===lastText&&!speech.hidden)return;
- clearTimeout(timer);lastText=text;speaker.textContent=name;line.textContent=text;speech.hidden=false;speech.dataset.hasDialogue='true';speech.dataset.placement=placement;positionSpeech();
+ clearTimeout(timer);lastText=text;speaker.textContent=name;line.textContent=text;speech.hidden=false;speech.dataset.hasDialogue='true';speech.dataset.placement=placement;
  if(duration)timer=setTimeout(()=>{speech.hidden=true},duration);
 }
 export function speakStep(text,{placement='auto',persist=false}={}){speak(text,{duration:persist?0:Math.max(2800,Math.min(6000,text.length*60)),placement})}

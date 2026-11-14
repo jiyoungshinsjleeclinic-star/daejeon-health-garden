@@ -41,8 +41,8 @@ function surfaceTexture(kind){
 
 export function makeMaterials(){
  const wood=surfaceTexture('wood'),fabric=surfaceTexture('fabric');
- const m=(color,options={})=>new THREE.MeshStandardMaterial({color,roughness:.7,...options});
- return {green:m('#719283',{map:fabric,roughness:.95}),dark:m('#285c50'),white:m('#f3f4f1',{roughness:.48}),wood:m('#ffffff',{map:wood,roughness:.58}),pink:m('#cb8c99',{map:fabric}),blue:m('#88acb8',{map:fabric,roughness:.95}),yellow:m('#d8bd6e'),leaf:m('#477950',{roughness:.6}),floor:m('#e5e7e6'),skin:m('#e6b997',{roughness:.8}),metal:m('#b8c0c2',{metalness:.75,roughness:.3}),leather:m('#33383a',{roughness:.6}),fabric:m('#dedbd0',{map:fabric,roughness:.95})};
+ const m=(color,options={})=>new THREE.MeshPhysicalMaterial({color,roughness:.7,...options});
+ return {green:m('#719283',{map:fabric,roughness:.9,sheen:.18,sheenColor:'#d9eee6'}),dark:m('#285c50',{roughness:.52}),white:m('#f3f4f1',{roughness:.4,clearcoat:.08}),wood:m('#ffffff',{map:wood,roughness:.52,clearcoat:.06}),pink:m('#cb8c99',{map:fabric,roughness:.88,sheen:.2,sheenColor:'#f4d8de'}),blue:m('#88acb8',{map:fabric,roughness:.9,sheen:.16,sheenColor:'#dcebed'}),yellow:m('#d8bd6e',{roughness:.62}),leaf:m('#477950',{roughness:.55,clearcoat:.12}),floor:m('#e5e7e6',{roughness:.72}),skin:m('#e6b997',{roughness:.62,clearcoat:.04}),metal:m('#b8c0c2',{metalness:.78,roughness:.25}),leather:m('#33383a',{roughness:.5,clearcoat:.16}),fabric:m('#dedbd0',{map:fabric,roughness:.92,sheen:.16,sheenColor:'#ffffff'})};
 }
 
 function mesh(parent,geometry,material,x,y,z){const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;parent.add(o);return o}
@@ -51,14 +51,14 @@ function softBox(parent,m,w,h,d,x,y,z,r=.07){return mesh(parent,roundedGeometry(
 function limb(parent,m,r,length,x,y,z){return mesh(parent,new THREE.CapsuleGeometry(r,Math.max(.01,length-r*2),3,10),m,x,y,z)}
 
 export function makePerson(color,parent,mats,options={}){
- const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshStandardMaterial({color,roughness:.92,map:mats.fabric.map});
- const trousers=new THREE.MeshStandardMaterial({color:'#424c51',roughness:.95}),hair=new THREE.MeshStandardMaterial({color:'#392f2b',roughness:.9});
- const eyes=new THREE.MeshStandardMaterial({color:'#252724',roughness:.3}),lip=new THREE.MeshStandardMaterial({color:'#ad7667'});
+ const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshPhysicalMaterial({color,roughness:.84,map:mats.fabric.map,sheen:.24,sheenColor:'#ffffff'});
+ const trousers=new THREE.MeshPhysicalMaterial({color:'#424c51',roughness:.9,sheen:.12,sheenColor:'#aab4b6'}),hair=new THREE.MeshPhysicalMaterial({color:'#392f2b',roughness:.72,clearcoat:.12,clearcoatRoughness:.55});
+ const eyes=new THREE.MeshPhysicalMaterial({color:'#252724',roughness:.18,clearcoat:.7}),lip=new THREE.MeshPhysicalMaterial({color:'#ad7667',roughness:.45}),blush=new THREE.MeshPhysicalMaterial({color:'#d89087',roughness:.7,transparent:true,opacity:.38});
  const torso=limb(g,shirt,.28,.72,0,1.23,0);torso.scale.z=.68;
  ellipsoid(g,shirt,0,1.46,0,.30,.095,.18);
  limb(g,mats.skin,.087,.2,0,1.62,0);
  ellipsoid(g,mats.skin,0,1.87,.015,.235,.285,.225);
- for(const x of [-.239,.239])ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035);
+ for(const x of [-.239,.239]){ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035);ellipsoid(g,blush,x,1.82,.224,.052,.027,.006)}
  const cap=mesh(g,new THREE.SphereGeometry(1,20,12,0,Math.PI*2,0,Math.PI*.53),hair,0,1.89,.015);cap.scale.set(.25,.3,.245);
  for(const x of [-.13,0,.13]){const bang=ellipsoid(g,hair,x,2.018,.16,.105,.065,.055);bang.rotation.z=-.25}
  const femaleHair=new THREE.Group();g.add(femaleHair);
@@ -79,14 +79,14 @@ export function makePerson(color,parent,mats,options={}){
  for(const x of [-.355,.355]){
   const arm=new THREE.Group();arm.position.set(x,1.47,0);g.add(arm);
   limb(arm,shirt,.085,.36,0,-.15,0);const elbow=new THREE.Group();elbow.position.y=-.3;arm.add(elbow);arm.userData.elbow=elbow;limb(elbow,shirt,.077,.29,0,-.1,.015);
-  softBox(elbow,mats.white,.16,.045,.17,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.079,.095,.063);
+  softBox(elbow,mats.white,.16,.045,.17,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.079,.095,.063);const thumb=limb(elbow,mats.skin,.018,.105,x<0?-.065:.065,-.31,.065);thumb.rotation.z=x<0?-.65:.65;
   const finger=new THREE.Group();elbow.add(finger);finger.visible=false;limb(finger,mats.skin,.017,.18,.02,-.415,0);arm.userData.indexFinger=finger;arms.push(arm);
  }
  for(const x of [-.14,.14]){
   const leg=new THREE.Group();leg.position.set(x,.91,0);g.add(leg);limb(leg,trousers,.112,.44,0,-.2,0);
   const knee=new THREE.Group();knee.position.y=-.41;leg.add(knee);limb(knee,trousers,.097,.39,0,-.17,0);
   const shoe=new THREE.Group();knee.add(shoe);shoes.push(shoe);
-  softBox(shoe,mats.white,.22,.06,.39,0,-.455,.072,.025);softBox(shoe,mats.leather,.205,.135,.35,0,-.38,.065,.045);
+  softBox(shoe,mats.white,.22,.06,.39,0,-.455,.072,.025);softBox(shoe,mats.leather,.205,.135,.35,0,-.38,.065,.045);softBox(shoe,mats.dark,.212,.025,.36,0,-.482,.072,.012);
   for(const z of [.03,.09,.15])softBox(shoe,mats.white,.12,.009,.013,0,-.31,z,.003);
   const foot=new THREE.Group();knee.add(foot);foot.visible=false;feet.push(foot);softBox(foot,mats.skin,.18,.08,.28,0,-.44,.065,.035);
   leg.userData.knee=knee;legs.push(leg);
