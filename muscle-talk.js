@@ -1,4 +1,4 @@
-import {speakStep,hideSpeech} from './center-speech.js?v=speech-3';
+import {speakStep,hideSpeech} from './center-speech.js?v=speech-4';
 
 let inMuscle=false,wasSeated=false;const dialog=document.querySelector('#dialog');
 const greeting='안녕하세요. 어떤 상담을 받고 싶으세요?';

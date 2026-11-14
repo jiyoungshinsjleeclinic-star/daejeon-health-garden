@@ -1,9 +1,11 @@
 const speech=document.createElement('div');speech.className='cardio-speech';speech.hidden=true;speech.setAttribute('role','status');speech.setAttribute('aria-live','polite');
-const speaker=document.createElement('strong'),line=document.createElement('p'),close=document.createElement('button'),content=document.createElement('div');content.className='speech-content';close.className='speech-close';close.type='button';close.setAttribute('aria-label','말풍선 닫기');close.title='말풍선 닫기';close.textContent='×';content.append(speaker,line,close);speech.append(content);document.querySelector('.world-shell').append(speech);
+const speaker=document.createElement('strong'),line=document.createElement('p'),close=document.createElement('button'),content=document.createElement('div');content.className='speech-content';close.className='speech-close';close.type='button';close.setAttribute('aria-label','말풍선 닫기');close.title='말풍선 닫기';close.textContent='×';content.append(speaker,line,close);speech.append(content);
 let timer=0,lastText='';
 const world=document.querySelector('#world');
+world.insertAdjacentElement('afterend',speech);
 function positionSpeech(){
  const placement=speech.dataset.placement,clear=placement==='screen-clear',inbody=placement==='inbody-clear',mobile=world.clientWidth<620;
+ if(mobile){speech.style.left='';speech.style.top='';speech.style.width='';speech.style.maxWidth='';speech.style.setProperty('--speech-max-height','150px');return}
  speech.style.left=world.offsetLeft+(clear||inbody?(mobile?12:24):world.clientWidth/2)+'px';speech.style.top=inbody?world.offsetTop+(mobile?54:24)+'px':world.offsetTop+world.clientHeight*(clear?(mobile?.59:.64):.46)+'px';speech.style.width=clear?(mobile?Math.max(190,world.clientWidth*.54):Math.min(370,world.clientWidth*.38))+'px':inbody?(mobile?Math.max(200,world.clientWidth-24):Math.min(270,world.clientWidth*.24))+'px':'';speech.style.maxWidth=clear?(mobile?Math.max(190,world.clientWidth*.54):Math.min(370,world.clientWidth*.38))+'px':inbody?(mobile?Math.max(200,world.clientWidth-24):Math.min(270,world.clientWidth*.24))+'px':Math.max(200,world.clientWidth-24)+'px';speech.style.setProperty('--speech-max-height',Math.max(110,world.clientHeight-(clear||inbody?120:170))+'px')
 }
 new ResizeObserver(positionSpeech).observe(world);
