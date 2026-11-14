@@ -10,9 +10,10 @@ const [html,world,speech,sceneCss]=await Promise.all([
 
 assert(!/gpt-guide|GPT에게 자유롭게 묻기/i.test(html));
 assert(speech.includes("insertAdjacentElement('afterend',speech)"));
+assert(!speech.includes('scrollIntoView'));
 assert(sceneCss.includes('.cardio-speech{position:relative'));
-assert(sceneCss.includes('.avatar-control'));
-assert(sceneCss.includes('.move-pad'));
+assert(sceneCss.includes('.cardio-speech[hidden]{display:block;visibility:hidden'));
+assert(sceneCss.includes('height:92px'));
 assert(world.includes('if(!isBlocked(nx,avatar.g.position.z))'));
 assert(world.includes('if(!isBlocked(avatar.g.position.x,nz))'));
 assert(world.includes('pathfinder.disableCornerCutting()'));
