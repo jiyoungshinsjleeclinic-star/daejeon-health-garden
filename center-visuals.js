@@ -25,7 +25,7 @@ export function roundedGeometry(w,h,d,r=.06){
  s.moveTo(-x+c,-y);s.lineTo(x-c,-y);s.quadraticCurveTo(x,-y,x,-y+c);
  s.lineTo(x,y-c);s.quadraticCurveTo(x,y,x-c,y);s.lineTo(-x+c,y);
  s.quadraticCurveTo(-x,y,-x,y-c);s.lineTo(-x,-y+c);s.quadraticCurveTo(-x,-y,-x+c,-y);
- const g=new THREE.ExtrudeGeometry(s,{depth:d-2*r,bevelEnabled:true,bevelThickness:r,bevelSize:r,bevelSegments:2,steps:1,curveSegments:3});
+ const g=new THREE.ExtrudeGeometry(s,{depth:d-2*r,bevelEnabled:true,bevelThickness:r,bevelSize:r,bevelSegments:4,steps:1,curveSegments:6});
  g.translate(0,0,-d/2+r);g.computeVertexNormals();return g;
 }
 
@@ -46,44 +46,45 @@ export function makeMaterials(){
 }
 
 function mesh(parent,geometry,material,x,y,z){const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;parent.add(o);return o}
-function ellipsoid(parent,material,x,y,z,sx,sy,sz){const o=mesh(parent,new THREE.SphereGeometry(1,16,12),material,x,y,z);o.scale.set(sx,sy,sz);return o}
+function ellipsoid(parent,material,x,y,z,sx,sy,sz){const o=mesh(parent,new THREE.SphereGeometry(1,24,18),material,x,y,z);o.scale.set(sx,sy,sz);return o}
 function softBox(parent,m,w,h,d,x,y,z,r=.07){return mesh(parent,roundedGeometry(w,h,d,r),m,x,y,z)}
-function limb(parent,m,r,length,x,y,z){return mesh(parent,new THREE.CapsuleGeometry(r,Math.max(.01,length-r*2),3,10),m,x,y,z)}
+function limb(parent,m,r,length,x,y,z){return mesh(parent,new THREE.CapsuleGeometry(r,Math.max(.01,length-r*2),6,16),m,x,y,z)}
 
 export function makePerson(color,parent,mats,options={}){
  const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshPhysicalMaterial({color,roughness:.84,map:mats.fabric.map,sheen:.24,sheenColor:'#ffffff'});
  const trousers=new THREE.MeshPhysicalMaterial({color:'#424c51',roughness:.9,sheen:.12,sheenColor:'#aab4b6'}),hair=new THREE.MeshPhysicalMaterial({color:'#392f2b',roughness:.72,clearcoat:.12,clearcoatRoughness:.55});
  const eyes=new THREE.MeshPhysicalMaterial({color:'#252724',roughness:.18,clearcoat:.7}),lip=new THREE.MeshPhysicalMaterial({color:'#ad7667',roughness:.45}),blush=new THREE.MeshPhysicalMaterial({color:'#d89087',roughness:.7,transparent:true,opacity:.38});
- const torso=limb(g,shirt,.28,.72,0,1.23,0);torso.scale.z=.68;
- ellipsoid(g,shirt,0,1.46,0,.30,.095,.18);
+ const torso=ellipsoid(g,shirt,0,1.23,0,.275,.37,.18);torso.rotation.x=-.025;
+ ellipsoid(g,shirt,0,1.46,0,.335,.105,.195);
+ ellipsoid(g,trousers,0,.93,0,.245,.135,.17);
  limb(g,mats.skin,.087,.2,0,1.62,0);
  ellipsoid(g,mats.skin,0,1.87,.015,.235,.285,.225);
- for(const x of [-.239,.239]){ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035);ellipsoid(g,blush,x,1.82,.224,.052,.027,.006)}
- const cap=mesh(g,new THREE.SphereGeometry(1,20,12,0,Math.PI*2,0,Math.PI*.53),hair,0,1.89,.015);cap.scale.set(.25,.3,.245);
- for(const x of [-.13,0,.13]){const bang=ellipsoid(g,hair,x,2.018,.16,.105,.065,.055);bang.rotation.z=-.25}
+ for(const x of [-.239,.239]){ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035);ellipsoid(g,blush,x,1.82,.224,.052,.027,.006);ellipsoid(g,lip,x,1.86,.031,.018,.033,.012)}
+ const cap=mesh(g,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.58),hair,0,1.99,.005);cap.scale.set(.255,.225,.247);
+ for(const x of [-.13,0,.13]){const bang=ellipsoid(g,hair,x,1.982,.19,.09,.045,.04);bang.rotation.z=x<0?-.24:x>0?.24:0}
  const femaleHair=new THREE.Group();g.add(femaleHair);
  ellipsoid(femaleHair,hair,0,1.82,-.16,.245,.31,.12);
  for(const x of [-.22,.22]){const lock=limb(femaleHair,hair,.055,.44,x,1.72,-.055);lock.rotation.z=x<0?-.08:.08}
  const ponytail=ellipsoid(femaleHair,hair,.25,1.78,-.12,.115,.24,.105);ponytail.rotation.z=-.38;
  for(const x of [-.085,.085]){
-  ellipsoid(g,mats.white,x,1.89,.221,.038,.022,.012);ellipsoid(g,eyes,x,1.889,.232,.018,.023,.009);
+  ellipsoid(g,mats.white,x,1.89,.221,.041,.025,.012);ellipsoid(g,eyes,x,1.889,.234,.018,.024,.009);
   ellipsoid(g,mats.white,x-.005,1.897,.24,.005,.006,.003);
   const brow=softBox(g,hair,.066,.012,.012,x,1.947,.222,.003);brow.rotation.z=x<0?.06:-.06;
  }
  ellipsoid(g,mats.skin,0,1.849,.246,.027,.039,.036);
- ellipsoid(g,lip,0,1.788,.219,.045,.009,.008);
+ ellipsoid(g,lip,0,1.788,.219,.048,.011,.008);ellipsoid(g,mats.skin,0,1.755,.14,.13,.055,.11);
  for(const side of [-1,1]){const collar=softBox(g,mats.white,.085,.105,.02,side*.055,1.49,.18,.012);collar.rotation.z=side*.4}
  softBox(g,shirt,.035,.48,.025,0,1.2,.186,.005);
  for(const y of [1.12,1.27,1.39])ellipsoid(g,mats.white,0,y,.207,.011,.011,.005);
  const arms=[],legs=[],shoes=[],feet=[];
  for(const x of [-.355,.355]){
   const arm=new THREE.Group();arm.position.set(x,1.47,0);g.add(arm);
-  limb(arm,shirt,.085,.36,0,-.15,0);const elbow=new THREE.Group();elbow.position.y=-.3;arm.add(elbow);arm.userData.elbow=elbow;limb(elbow,shirt,.077,.29,0,-.1,.015);
+  ellipsoid(arm,shirt,0,-.02,0,.105,.13,.11);limb(arm,shirt,.083,.36,0,-.16,0);const elbow=new THREE.Group();elbow.position.y=-.3;arm.add(elbow);arm.userData.elbow=elbow;limb(elbow,shirt,.074,.29,0,-.1,.015);
   softBox(elbow,mats.white,.16,.045,.17,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.079,.095,.063);const thumb=limb(elbow,mats.skin,.018,.105,x<0?-.065:.065,-.31,.065);thumb.rotation.z=x<0?-.65:.65;
   const finger=new THREE.Group();elbow.add(finger);finger.visible=false;limb(finger,mats.skin,.017,.18,.02,-.415,0);arm.userData.indexFinger=finger;arms.push(arm);
  }
  for(const x of [-.14,.14]){
-  const leg=new THREE.Group();leg.position.set(x,.91,0);g.add(leg);limb(leg,trousers,.112,.44,0,-.2,0);
+  const leg=new THREE.Group();leg.position.set(x,.91,0);g.add(leg);limb(leg,trousers,.108,.44,0,-.2,0);
   const knee=new THREE.Group();knee.position.y=-.41;leg.add(knee);limb(knee,trousers,.097,.39,0,-.17,0);
   const shoe=new THREE.Group();knee.add(shoe);shoes.push(shoe);
   softBox(shoe,mats.white,.22,.06,.39,0,-.455,.072,.025);softBox(shoe,mats.leather,.205,.135,.35,0,-.38,.065,.045);softBox(shoe,mats.dark,.212,.025,.36,0,-.482,.072,.012);
@@ -125,6 +126,7 @@ export function makeChair(x,z,color,parent,mats){
  softBox(g,color,1.3,.23,1.19,0,.68,0,.1);
  const back=softBox(g,color,1.3,1.03,.21,0,1.23,-.51,.09);back.rotation.x=-.075;
  softBox(g,color,1.13,.7,.09,0,1.29,-.37,.06);
+ for(const x of [-.36,0,.36])ellipsoid(g,mats.leather,x,1.3,-.315,.018,.018,.012);
  for(const side of [-1,1]){
   softBox(g,color,.15,.32,1.04,side*.65,.88,-.04,.06);
   for(const depth of [-.4,.4]){const leg=mesh(g,new THREE.CylinderGeometry(.035,.047,.56,10),mats.metal,side*.49,.3,depth);leg.rotation.z=side*-.07}
