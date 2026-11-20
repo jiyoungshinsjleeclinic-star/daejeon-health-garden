@@ -59,7 +59,10 @@ export function makePerson(color,parent,mats,options={}){
  ellipsoid(g,trousers,0,.93,0,.245,.135,.17);
  limb(g,mats.skin,.087,.2,0,1.62,0);
  ellipsoid(g,mats.skin,0,1.87,.015,.235,.285,.225);
- for(const x of [-.239,.239]){ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035);ellipsoid(g,blush,x,1.82,.224,.052,.027,.006);ellipsoid(g,lip,x,1.86,.031,.018,.033,.012)}
+ // [보정] 귀(피부색 바깥 + 안쪽)만 이 반복문에 남기고, 볼터치는 아래에서 뺨 위치로 따로 배치
+ for(const x of [-.239,.239]){ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035);ellipsoid(g,lip,x,1.86,.031,.018,.033,.012)}
+ // [보정] 볼터치: x ±.239 → ±.125, z .224 → .206 (머리 표면 안쪽으로 맞춤)
+ for(const x of [-.125,.125])ellipsoid(g,blush,x,1.82,.206,.05,.028,.006);
  const cap=mesh(g,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.58),hair,0,1.99,.005);cap.scale.set(.255,.225,.247);
  for(const x of [-.13,0,.13]){const bang=ellipsoid(g,hair,x,1.982,.19,.09,.045,.04);bang.rotation.z=x<0?-.24:x>0?.24:0}
  const femaleHair=new THREE.Group();g.add(femaleHair);
@@ -67,20 +70,27 @@ export function makePerson(color,parent,mats,options={}){
  for(const x of [-.22,.22]){const lock=limb(femaleHair,hair,.055,.44,x,1.72,-.055);lock.rotation.z=x<0?-.08:.08}
  const ponytail=ellipsoid(femaleHair,hair,.25,1.78,-.12,.115,.24,.105);ponytail.rotation.z=-.38;
  for(const x of [-.085,.085]){
-  ellipsoid(g,mats.white,x,1.89,.221,.041,.025,.012);ellipsoid(g,eyes,x,1.889,.234,.018,.024,.009);
+  // [보정] 눈 크기: 흰자 .041×.025 → .05×.031, 눈동자 .018×.024 → .023×.028
+  ellipsoid(g,mats.white,x,1.89,.221,.05,.031,.012);ellipsoid(g,eyes,x,1.889,.234,.023,.028,.009);
   ellipsoid(g,mats.white,x-.005,1.897,.24,.005,.006,.003);
   const brow=softBox(g,hair,.066,.012,.012,x,1.947,.222,.003);brow.rotation.z=x<0?.06:-.06;
  }
  ellipsoid(g,mats.skin,0,1.849,.246,.027,.039,.036);
- ellipsoid(g,lip,0,1.788,.219,.048,.011,.008);ellipsoid(g,mats.skin,0,1.755,.14,.13,.055,.11);
+ // [보정] 입: 계산상 기존 입(z .219+.008=.227)이 머리 표면(z≈.2305)보다 안쪽이라 앞으로 이동하고 양 끝을 살짝 올림
+ ellipsoid(g,lip,0,1.784,.229,.034,.0105,.011);
+ for(const side of [-1,1]){const corner=ellipsoid(g,lip,side*.038,1.79,.2255,.02,.009,.01);corner.rotation.z=side*.5}
+ ellipsoid(g,mats.skin,0,1.755,.14,.13,.055,.11);
  for(const side of [-1,1]){const collar=softBox(g,mats.white,.085,.105,.02,side*.055,1.49,.18,.012);collar.rotation.z=side*.4}
  softBox(g,shirt,.035,.48,.025,0,1.2,.186,.005);
  for(const y of [1.12,1.27,1.39])ellipsoid(g,mats.white,0,y,.207,.011,.011,.005);
  const arms=[],legs=[],shoes=[],feet=[];
  for(const x of [-.355,.355]){
   const arm=new THREE.Group();arm.position.set(x,1.47,0);g.add(arm);
-  ellipsoid(arm,shirt,0,-.02,0,.105,.13,.11);limb(arm,shirt,.083,.36,0,-.16,0);const elbow=new THREE.Group();elbow.position.y=-.3;arm.add(elbow);arm.userData.elbow=elbow;limb(elbow,shirt,.074,.29,0,-.1,.015);
-  softBox(elbow,mats.white,.16,.045,.17,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.079,.095,.063);const thumb=limb(elbow,mats.skin,.018,.105,x<0?-.065:.065,-.31,.065);thumb.rotation.z=x<0?-.65:.65;
+  // [보정] 어깨 .105/.13/.11 → .092/.115/.095, 위팔 반지름 .083 → .072 (길이·관절 위치는 그대로)
+  ellipsoid(arm,shirt,0,-.02,0,.092,.115,.095);limb(arm,shirt,.072,.36,0,-.16,0);const elbow=new THREE.Group();elbow.position.y=-.3;arm.add(elbow);arm.userData.elbow=elbow;
+  // [보정] 아래팔 반지름 .074 → .064, 소매 끝 .16×.17 → .14×.15, 손 .079/.095/.063 → .068/.092/.054
+  limb(elbow,shirt,.064,.29,0,-.1,.015);
+  softBox(elbow,mats.white,.14,.045,.15,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.068,.092,.054);const thumb=limb(elbow,mats.skin,.018,.105,x<0?-.065:.065,-.31,.065);thumb.rotation.z=x<0?-.65:.65;
   const finger=new THREE.Group();elbow.add(finger);finger.visible=false;limb(finger,mats.skin,.017,.18,.02,-.415,0);arm.userData.indexFinger=finger;arms.push(arm);
  }
  for(const x of [-.14,.14]){
