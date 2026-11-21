@@ -79,7 +79,6 @@ export function makePerson(color,parent,mats,options={}){
  // [보정] 입: 계산상 기존 입(z .219+.008=.227)이 머리 표면(z≈.2305)보다 안쪽이라 앞으로 이동하고 양 끝을 살짝 올림
  ellipsoid(g,lip,0,1.784,.229,.034,.0105,.011);
  for(const side of [-1,1]){const corner=ellipsoid(g,lip,side*.038,1.79,.2255,.02,.009,.01);corner.rotation.z=side*.5}
- ellipsoid(g,mats.skin,0,1.755,.14,.13,.055,.11);
  for(const side of [-1,1]){const collar=softBox(g,mats.white,.085,.105,.02,side*.055,1.49,.18,.012);collar.rotation.z=side*.4}
  softBox(g,shirt,.035,.48,.025,0,1.2,.186,.005);
  for(const y of [1.12,1.27,1.39])ellipsoid(g,mats.white,0,y,.207,.011,.011,.005);
