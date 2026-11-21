@@ -54,41 +54,65 @@ export function makePerson(color,parent,mats,options={}){
  const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshPhysicalMaterial({color,roughness:.84,map:mats.fabric.map,sheen:.24,sheenColor:'#ffffff'});
  const trousers=new THREE.MeshPhysicalMaterial({color:'#424c51',roughness:.9,sheen:.12,sheenColor:'#aab4b6'}),hair=new THREE.MeshPhysicalMaterial({color:'#392f2b',roughness:.72,clearcoat:.12,clearcoatRoughness:.55});
  const eyes=new THREE.MeshPhysicalMaterial({color:'#252724',roughness:.18,clearcoat:.7}),lip=new THREE.MeshPhysicalMaterial({color:'#ad7667',roughness:.45}),blush=new THREE.MeshPhysicalMaterial({color:'#d89087',roughness:.7,transparent:true,opacity:.38});
+ // [온유] 여성일 때만 보이는 재질: 흰 블라우스, 조끼 안쪽 선
+ const blouse=new THREE.MeshPhysicalMaterial({color:'#f6f4ee',roughness:.78,sheen:.2,sheenColor:'#ffffff'}),vestEdge=new THREE.MeshPhysicalMaterial({color:'#1f3b31',roughness:.7});
  const torso=ellipsoid(g,shirt,0,1.23,0,.275,.37,.18);torso.rotation.x=-.025;
  ellipsoid(g,shirt,0,1.46,0,.335,.105,.195);
  ellipsoid(g,trousers,0,.93,0,.245,.135,.17);
  limb(g,mats.skin,.087,.2,0,1.62,0);
  ellipsoid(g,mats.skin,0,1.87,.015,.235,.285,.225);
- // [보정] 귀(피부색 바깥)만 이 반복문에 남기고, 볼터치는 아래에서 뺨 위치로 따로 배치
+ // 귀(피부색 바깥만)
  for(const x of [-.239,.239]){ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035)}
- // [보정] 볼터치: x ±.239 → ±.125, z .224 → .206 (머리 표면 안쪽으로 맞춤)
+ // 볼터치: x ±.239 → ±.125, z .224 → .206 (머리 표면 안쪽으로 맞춤)
  for(const x of [-.125,.125])ellipsoid(g,blush,x,1.82,.206,.05,.028,.006);
- const cap=mesh(g,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.58),hair,0,1.99,.005);cap.scale.set(.255,.225,.247);
- for(const x of [-.13,0,.13]){const bang=ellipsoid(g,hair,x,1.982,.19,.09,.045,.04);bang.rotation.z=x<0?-.24:x>0?.24:0}
- const femaleHair=new THREE.Group();g.add(femaleHair);
- ellipsoid(femaleHair,hair,0,1.82,-.16,.245,.31,.12);
- for(const x of [-.22,.22]){const lock=limb(femaleHair,hair,.055,.44,x,1.72,-.055);lock.rotation.z=x<0?-.08:.08}
- const ponytail=ellipsoid(femaleHair,hair,.25,1.78,-.12,.115,.24,.105);ponytail.rotation.z=-.38;
+ // 남성 머리: 짧은 머리 + 앞머리
+ const maleHair=new THREE.Group();g.add(maleHair);
+ const cap=mesh(maleHair,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.58),hair,0,1.99,.005);cap.scale.set(.255,.225,.247);
+ for(const x of [-.13,0,.13]){const bang=ellipsoid(maleHair,hair,x,1.982,.19,.09,.045,.04);bang.rotation.z=x<0?-.24:x>0?.24:0}
+ // [온유] 여성 머리: 옆가르마 앞머리 + 어깨까지 오는 웨이브 단발
+ const onyuHair=new THREE.Group();g.add(onyuHair);
+ const crown=mesh(onyuHair,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.56),hair,0,1.99,0);crown.scale.set(.245,.235,.248);crown.rotation.x=-.25;
+ const fringe=ellipsoid(onyuHair,hair,-.03,2.012,.205,.17,.055,.048);fringe.rotation.z=.22;
+ ellipsoid(onyuHair,hair,0,1.8,-.12,.25,.32,.14);
+ ellipsoid(onyuHair,hair,0,1.6,-.12,.215,.16,.1);
+ for(const s of [-1,1]){
+  ellipsoid(onyuHair,hair,s*.228,1.8,-.01,.062,.185,.15);
+  ellipsoid(onyuHair,hair,s*.245,1.65,-.02,.06,.13,.11);
+  const tip=ellipsoid(onyuHair,hair,s*.255,1.545,.02,.058,.06,.07);tip.rotation.z=-s*.5;
+ }
+ // [온유] 눈매: 윗 속눈썹 선 (머리 곡면을 따라 살짝 돌려 배치)
+ const onyuFace=new THREE.Group();g.add(onyuFace);
+ for(const s of [-1,1]){const lash=limb(onyuFace,eyes,.0038,.105,s*.085,1.916,.2255);lash.rotation.set(0,s*.3,Math.PI/2)}
  for(const x of [-.085,.085]){
-  // [보정] 눈 크기: 흰자 .041×.025 → .05×.031, 눈동자 .018×.024 → .023×.028
+  // 눈 크기: 흰자 .05×.031, 눈동자 .023×.028
   ellipsoid(g,mats.white,x,1.89,.221,.05,.031,.012);ellipsoid(g,eyes,x,1.889,.234,.023,.028,.009);
   ellipsoid(g,mats.white,x-.005,1.897,.24,.005,.006,.003);
   const brow=softBox(g,hair,.066,.012,.012,x,1.947,.222,.003);brow.rotation.z=x<0?.06:-.06;
  }
  ellipsoid(g,mats.skin,0,1.849,.246,.027,.039,.036);
- // [보정] 입: 계산상 기존 입(z .219+.008=.227)이 머리 표면(z≈.2305)보다 안쪽이라 앞으로 이동하고 양 끝을 살짝 올림
+ // 입: 머리 표면보다 앞으로 이동하고 양 끝을 살짝 올림
  ellipsoid(g,lip,0,1.784,.229,.034,.0105,.011);
  for(const side of [-1,1]){const corner=ellipsoid(g,lip,side*.038,1.79,.2255,.02,.009,.01);corner.rotation.z=side*.5}
  for(const side of [-1,1]){const collar=softBox(g,mats.white,.085,.105,.02,side*.055,1.49,.18,.012);collar.rotation.z=side*.4}
- softBox(g,shirt,.035,.48,.025,0,1.2,.186,.005);
- for(const y of [1.12,1.27,1.39])ellipsoid(g,mats.white,0,y,.207,.011,.011,.005);
- const arms=[],legs=[],shoes=[],feet=[];
+ // 남성: 셔츠 앞단추
+ const maleFront=new THREE.Group();g.add(maleFront);
+ softBox(maleFront,shirt,.035,.48,.025,0,1.2,.186,.005);
+ for(const y of [1.12,1.27,1.39])ellipsoid(maleFront,mats.white,0,y,.207,.011,.011,.005);
+ // [온유] 조끼 V넥: 안쪽 흰 블라우스 + 조끼 가장자리 선
+ const onyuFront=new THREE.Group();g.add(onyuFront);
+ const vShape=new THREE.Shape();vShape.moveTo(-.09,0);vShape.lineTo(.09,0);vShape.lineTo(0,-.2);vShape.closePath();
+ mesh(onyuFront,new THREE.ExtrudeGeometry(vShape,{depth:.03,bevelEnabled:false}),blouse,0,1.51,.172);
+ for(const s of [-1,1]){const edge=limb(onyuFront,vestEdge,.007,.21,s*.045,1.405,.2035);edge.rotation.z=-s*.442}
+ const arms=[],legs=[],shoes=[],feet=[],sleeves=[];
  for(const x of [-.355,.355]){
   const arm=new THREE.Group();arm.position.set(x,1.47,0);g.add(arm);
-  // [보정] 어깨 .105/.13/.11 → .092/.115/.095, 위팔 반지름 .083 → .072 (길이·관절 위치는 그대로)
+  // 어깨 .092/.115/.095, 위팔 반지름 .072 (길이·관절 위치는 그대로)
   ellipsoid(arm,shirt,0,-.02,0,.092,.115,.095);limb(arm,shirt,.072,.36,0,-.16,0);const elbow=new THREE.Group();elbow.position.y=-.3;arm.add(elbow);arm.userData.elbow=elbow;
-  // [보정] 아래팔 반지름 .074 → .064, 소매 끝 .16×.17 → .14×.15, 손 .079/.095/.063 → .068/.092/.054
+  // [온유] 흰 블라우스 소매: 팔보다 살짝 크게 덮음 (여성일 때만 표시)
+  const sleeveUp=new THREE.Group();arm.add(sleeveUp);ellipsoid(sleeveUp,blouse,0,-.02,0,.1,.122,.103);limb(sleeveUp,blouse,.079,.36,0,-.16,0);sleeves.push(sleeveUp);
+  // 아래팔 반지름 .064, 소매 끝 .14×.15, 손 .068/.092/.054
   limb(elbow,shirt,.064,.29,0,-.1,.015);
+  const sleeveLow=new THREE.Group();elbow.add(sleeveLow);limb(sleeveLow,blouse,.07,.29,0,-.1,.015);sleeves.push(sleeveLow);
   softBox(elbow,mats.white,.14,.045,.15,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.068,.092,.054);const thumb=limb(elbow,mats.skin,.018,.105,x<0?-.065:.065,-.31,.065);thumb.rotation.z=x<0?-.65:.65;
   const finger=new THREE.Group();elbow.add(finger);finger.visible=false;limb(finger,mats.skin,.017,.18,.02,-.415,0);arm.userData.indexFinger=finger;arms.push(arm);
  }
@@ -101,7 +125,21 @@ export function makePerson(color,parent,mats,options={}){
   const foot=new THREE.Group();knee.add(foot);foot.visible=false;feet.push(foot);softBox(foot,mats.skin,.18,.08,.28,0,-.44,.065,.035);
   leg.userData.knee=knee;legs.push(leg);
  }
- compactMeshes(g);let gender='male';const setGender=value=>{gender=value==='female'?'female':'male';femaleHair.visible=gender==='female'};setGender(options.gender);
+ compactMeshes(g);
+ // 성별 전환: 여성이면 온유 모습(진녹색 조끼·웨이브 단발·흰 소매), 남성이면 기존 모습
+ const baseLip=lip.color.clone(),onyuLip=new THREE.Color('#c4766f'),vestGreen=new THREE.Color('#34594a');
+ let gender='',savedShirt=null;
+ const setGender=value=>{
+  const next=value==='female'?'female':'male',female=next==='female';
+  if(next!==gender){
+   if(female){savedShirt=shirt.color.clone();shirt.color.copy(vestGreen)}
+   else if(savedShirt){shirt.color.copy(savedShirt);savedShirt=null}
+   lip.color.copy(female?onyuLip:baseLip);gender=next;
+  }
+  maleHair.visible=maleFront.visible=!female;
+  onyuHair.visible=onyuFace.visible=onyuFront.visible=female;
+  sleeves.forEach(sleeve=>sleeve.visible=female);
+ };setGender(options.gender);
  return {g,shirt,legs,arms,shoes,feet,setGender,get gender(){return gender}};
 }
 
