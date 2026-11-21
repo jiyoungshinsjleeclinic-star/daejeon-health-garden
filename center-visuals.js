@@ -59,8 +59,8 @@ export function makePerson(color,parent,mats,options={}){
  ellipsoid(g,trousers,0,.93,0,.245,.135,.17);
  limb(g,mats.skin,.087,.2,0,1.62,0);
  ellipsoid(g,mats.skin,0,1.87,.015,.235,.285,.225);
- // [보정] 귀(피부색 바깥 + 안쪽)만 이 반복문에 남기고, 볼터치는 아래에서 뺨 위치로 따로 배치
- for(const x of [-.239,.239]){ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035);ellipsoid(g,lip,x,1.86,.031,.018,.033,.012)}
+ // [보정] 귀(피부색 바깥)만 이 반복문에 남기고, 볼터치는 아래에서 뺨 위치로 따로 배치
+ for(const x of [-.239,.239]){ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035)}
  // [보정] 볼터치: x ±.239 → ±.125, z .224 → .206 (머리 표면 안쪽으로 맞춤)
  for(const x of [-.125,.125])ellipsoid(g,blush,x,1.82,.206,.05,.028,.006);
  const cap=mesh(g,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.58),hair,0,1.99,.005);cap.scale.set(.255,.225,.247);
