@@ -53,7 +53,7 @@ function limb(parent,m,r,length,x,y,z){return mesh(parent,new THREE.CapsuleGeome
 export function makePerson(color,parent,mats,options={}){
  const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshPhysicalMaterial({color,roughness:.84,map:mats.fabric.map,sheen:.24,sheenColor:'#ffffff'});
  const trousers=new THREE.MeshPhysicalMaterial({color:'#424c51',roughness:.9,sheen:.12,sheenColor:'#aab4b6'}),hair=new THREE.MeshPhysicalMaterial({color:'#392f2b',roughness:.72,clearcoat:.12,clearcoatRoughness:.55});
- const eyes=new THREE.MeshPhysicalMaterial({color:'#252724',roughness:.18,clearcoat:.7}),lip=new THREE.MeshPhysicalMaterial({color:'#ad7667',roughness:.45}),blush=new THREE.MeshPhysicalMaterial({color:'#d89087',roughness:.7,transparent:true,opacity:.38});
+ const eyes=new THREE.MeshPhysicalMaterial({color:'#252724',roughness:.18,clearcoat:.7}),lip=new THREE.MeshPhysicalMaterial({color:'#ff0000',roughness:.45}),blush=new THREE.MeshPhysicalMaterial({color:'#d89087',roughness:.7,transparent:true,opacity:.38}); // [테스트] lip 색 #ff0000 = 적용 확인용. 확인 후 '#ad7667'로 되돌리기
  const torso=ellipsoid(g,shirt,0,1.23,0,.275,.37,.18);torso.rotation.x=-.025;
  ellipsoid(g,shirt,0,1.46,0,.335,.105,.195);
  ellipsoid(g,trousers,0,.93,0,.245,.135,.17);
