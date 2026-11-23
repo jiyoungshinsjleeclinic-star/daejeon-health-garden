@@ -36,7 +36,9 @@ function bendForAdams(visitor, amount){
 export function createPostureScene(visitor,staff,device,pose,onStage,onComplete){
  const seat=new THREE.Vector3(0,.13,2),staffSeat=new THREE.Vector3(0,.13,-2);
  // Align the soles with the top of the red mat.
- const mat=new THREE.Vector3(device.position.x,.059,device.position.z+.35),staffSpot=new THREE.Vector3(device.position.x-1.45,0,device.position.z-1.25);
+ const mat=device.localToWorld(device.userData.postureStandingPoint.clone());
+ mat.y-=.02;
+ const staffSpot=new THREE.Vector3(device.position.x-1.45,0,device.position.z-1.25);
  const approach=new THREE.Vector3(device.position.x-1.8,0,device.position.z+1.65);
  const route=[new THREE.Vector3(0,0,2),new THREE.Vector3(0,0,5.65),new THREE.Vector3(4.6,0,5.65),approach,mat];
  let active=false,stage='idle',started=0,frame=0;

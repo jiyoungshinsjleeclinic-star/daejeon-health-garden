@@ -77,10 +77,11 @@ if(type==='inbody'){
  for(const sx of [-.65,.65]){const h=b(.07,.75,.07,sx,1.1,-.15,black);h.rotation.z=sx<0?-.65:.65}
 }
 if(type==='posture'){
- b(1.75,.035,3.2,0,.04,.45,mat('#24262b'));b(1.88,.025,.12,0,.065,-1.12,black);
- b(1.7,.018,1.48,0,.07,.95,mat('#a8212a'));
- for(const sx of [-.32,.32]){const foot=b(.2,.012,.43,sx,.083,.85,mat('#e7bdba'));foot.rotation.y=sx<0?-.07:.07}
- for(let i=0;i<7;i++){b(.5,.008,.018,0,.065,-.82+i*.42,mats.white);for(const sx of [-.72,.72])b(.12,.01,.04,sx,.07,-.82+i*.42,i%2?mats.white:mat('#c96277'))}
+ const matThickness=.04,matTop=.08+matThickness,standingZ=.35;
+ g.userData.postureStandingPoint=new THREE.Vector3(0,matTop,standingZ);
+ b(1.75,matThickness,2.24,0,matTop-matThickness/2,standingZ,mat('#c42530'));
+ const footMark=mat('#ed9a96');
+ for(const x of [-.14,.14])b(.18,.002,.28,x,matTop+.001,standingZ+.065,footMark);
  b(.22,.1,.58,0,.11,-1.28,black);c(.075,2.75,0,1.48,-1.38,black);b(.17,.18,.13,0,1.5,-1.29,metal);b(.23,.13,.16,0,2.66,-1.28,black);
  for(const y of [.52,1.02,1.52,2.02])b(.055,.08,.035,0,y,-1.285,mats.blue);
 }
