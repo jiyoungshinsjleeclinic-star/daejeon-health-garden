@@ -30,6 +30,7 @@ for(const gender of ['female','male']){
  const planted=visitor.feet.map(foot=>foot.getWorldPosition(new THREE.Vector3()));
  scene.update(now+(adamsStart+2)*1000);
  assert.equal(scene.stage,'adams');
+ assert(scene.snapshot().scan.visible);
  assert.equal(visitor.g.rotation.x,0);
  assert.equal(visitor.upperBody.rotation.x,Math.PI/2);
  visitor.arms.forEach((arm,index)=>{
@@ -39,6 +40,27 @@ for(const gender of ['female','male']){
   assert(visitor.feet[index].getWorldPosition(new THREE.Vector3()).distanceTo(planted[index])<.001);
  });
  scene.cancel();
+ assert.equal(scene.snapshot().scan.visible,false);
  assert.equal(visitor.upperBody.rotation.x,0);
+
+ assert(scene.start());
+ const clock=performance.now();
+ const stages=new Map();
+ let elapsed=0;
+ for(const [stage,duration] of POSTURE_STEPS){stages.set(stage,elapsed);elapsed+=duration}
+ for(const stage of ['front','side','rear','adams']){
+  const entry=clock+(stages.get(stage)+1.1)*1000;
+  scene.update(entry);
+  const head=scene.snapshot().scan;
+  scene.update(entry+2300);
+  const feet=scene.snapshot().scan;
+  scene.update(entry+4600);
+  assert(head.visible&&feet.visible&&head.height-feet.height>.75);
+  assert(Math.abs(feet.height-.155)<.005);
+  assert(Math.abs(scene.snapshot().scan.height-head.height)<.005);
+ }
+ scene.update(clock+(stages.get('precautions')+.1)*1000);
+ assert.equal(scene.snapshot().scan.visible,false);
+ scene.dispose();
 }
-console.log('Adams assessment: waist bends, feet stay planted, and both palms reach the knees.');
+console.log('Posture assessment: Adams pose, four green scan sweeps, and light cleanup passed.');
