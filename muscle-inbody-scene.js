@@ -2,14 +2,15 @@ import * as THREE from './vendor/three.module.js';
 
 export const INBODY_SEQUENCE=[['invitation',5],['walking',6],['shoes-off',2],['stepping-on',1.5],['weight-ready',3],['weight-result',5],['handle-instruction',6],['handles',3],['measuring',7],['result',10],['finished',4],['stepping-off',1.5],['shoes-on',2],['walking-back',6],['sitting',1]];
 
-export function createMuscleInBodyScene(visitor,staff,device,pose,onStage,onComplete,getGender=()=>visitor.gender){
+export function createMuscleInBodyScene(visitor,staff,device,pose,onStage,onComplete,getGender=()=>visitor.gender,planWalk){
  const display=device.userData.inbodyDisplay,screen=device.userData.inbodyScreen,platformY=.18;
  const seat=new THREE.Vector3(0,.13,2),approach=new THREE.Vector3(device.position.x,0,device.position.z+1.35),platform=new THREE.Vector3(device.position.x,platformY,device.position.z+.12);
- const route=[new THREE.Vector3(0,0,3.3),new THREE.Vector3(0,0,5.75),new THREE.Vector3(-5.2,0,5.75),approach];
- const lengths=route.slice(1).map((p,i)=>p.distanceTo(route[i])),total=lengths.reduce((a,b)=>a+b,0);const loose=new THREE.Group();device.parent.add(loose);loose.visible=false;
+ let route=[new THREE.Vector3(0,0,3.3),new THREE.Vector3(0,0,5.75),new THREE.Vector3(-5.2,0,5.75),approach];
+ let lengths,total;
+ const loose=new THREE.Group();device.parent.add(loose);loose.visible=false;
  const staffSeat=new THREE.Vector3(0,.13,-2),staffStation=new THREE.Vector3(device.position.x+1.25,0,device.position.z+.15);
- const staffRoute=[staffSeat.clone().setY(0),new THREE.Vector3(-2.25,0,-1.25),new THREE.Vector3(-2.25,0,3.75),staffStation];
- const staffLengths=staffRoute.slice(1).map((p,i)=>p.distanceTo(staffRoute[i])),staffTotal=staffLengths.reduce((a,b)=>a+b,0);
+ let staffRoute=[staffSeat.clone().setY(0),new THREE.Vector3(-2.25,0,-1.25),new THREE.Vector3(-2.25,0,3.75),staffStation];
+ let staffLengths,staffTotal;
  visitor.shoes.forEach((shoe,i)=>{const copy=shoe.clone(true);copy.position.set(approach.x+(i?-.16:.16),.45,approach.z+.24);loose.add(copy)});
  let active=false,stage='idle',startTime=0,frame=0;
  const setShoes=on=>{visitor.shoes.forEach(s=>s.visible=on);visitor.feet.forEach(f=>f.visible=!on);loose.visible=!on};
@@ -24,11 +25,29 @@ export function createMuscleInBodyScene(visitor,staff,device,pose,onStage,onComp
  function cancel(){const wasActive=active;active=false;if(typeof cancelAnimationFrame==='function')cancelAnimationFrame(frame);stage='idle';display?.reset();setShoes(true);resetPose();seatStaff();if(wasActive){visitor.g.position.copy(seat);visitor.g.rotation.set(0,Math.PI,0);pose(visitor,true)}}
  const loop=now=>{if(!active)return;api.update(now);if(active)frame=requestAnimationFrame(loop)};
  const api={
-  start(){cancel();active=true;startTime=performance.now();visitor.g.position.copy(seat);visitor.g.rotation.set(0,Math.PI,0);pose(visitor,true);seatStaff();transition('invitation');if(typeof requestAnimationFrame==='function')frame=requestAnimationFrame(loop)},cancel,dispose(){cancel();loose.removeFromParent()},get active(){return active},get stage(){return stage},
+  start(){
+   if(planWalk){
+    const visitorWalk=planWalk(new THREE.Vector3(0,0,1.025),approach);
+    const guideWalk=planWalk(new THREE.Vector3(0,0,-1.025),staffStation);
+    if(!visitorWalk||!guideWalk)return false;
+    route=[seat.clone().setY(0),...visitorWalk];
+    staffRoute=[staffSeat.clone().setY(0),...guideWalk];
+   }
+   lengths=route.slice(1).map((p,i)=>p.distanceTo(route[i]));
+   total=lengths.reduce((sum,length)=>sum+length,0);
+   staffLengths=staffRoute.slice(1).map((p,i)=>p.distanceTo(staffRoute[i]));
+   staffTotal=staffLengths.reduce((sum,length)=>sum+length,0);
+   cancel();active=true;startTime=performance.now();
+   visitor.g.position.copy(seat);visitor.g.rotation.set(0,Math.PI,0);
+   pose(visitor,true);seatStaff();transition('invitation');
+   if(typeof requestAnimationFrame==='function')frame=requestAnimationFrame(loop);
+   return true;
+  },
+  cancel,dispose(){cancel();loose.removeFromParent()},get active(){return active},get stage(){return stage},
   update(now){if(!active)return;let elapsed=Math.max(0,(now-startTime)/1000),entry=null;for(const candidate of INBODY_SEQUENCE){if(elapsed<candidate[1]){entry=candidate;break}elapsed-=candidate[1]}
   if(!entry){active=false;setShoes(true);resetPose();visitor.g.position.copy(seat);visitor.g.rotation.set(0,Math.PI,0);pose(visitor,true);seatStaff();display?.update('result',getGender());onComplete();transition('complete');return}
   const [next,duration]=entry,f=elapsed/duration,s=f*f*(3-2*f);transition(next);resetPose();resetStaffPose();setShoes(true);if(next==='invitation'){visitor.g.position.copy(seat);visitor.g.rotation.set(0,Math.PI,0);pose(visitor,true);seatStaff()}else if(next==='walking'||next==='walking-back'){const back=next==='walking-back';walk(f,back);staffWalk(f,back)}else{staff.g.position.copy(staffStation);staff.g.rotation.y=-Math.PI/2;if(next==='shoes-off'||next==='shoes-on'){visitor.g.position.copy(approach);faceDevice();const bend=Math.sin(Math.PI*f);visitor.g.rotation.x=bend*.38;visitor.arms.forEach(a=>a.rotation.x=-bend*.65);setShoes(next==='shoes-off'?f<.55:f>=.55)}else if(next==='stepping-on'||next==='stepping-off'){const off=next==='stepping-off';visitor.g.position.lerpVectors(off?platform:approach,off?approach:platform,s);faceDevice();setShoes(false)}else if(next==='sitting'){visitor.g.position.lerpVectors(route[0],seat,s);visitor.g.rotation.y=Math.PI;visitor.legs.forEach(l=>{l.rotation.x=-Math.PI/2*s;l.userData.knee.rotation.x=Math.PI/2*s});seatStaff()}else{visitor.g.position.copy(platform);faceDevice();setShoes(false);if(['handle-instruction','handles','measuring','result','finished'].includes(next))grip(next==='handle-instruction'?0:next==='handles'?s:next==='finished'?1-f:1);if(['weight-ready'].includes(next))display?.update('idle',getGender());else if(next==='weight-result'||next==='handle-instruction'||next==='handles')display?.update('weight',getGender());else if(['measuring','result','finished'].includes(next))display?.update('result',getGender())}}},
-  camera(aspect){if(['weight-result','result'].includes(stage)&&screen){device.updateWorldMatrix(true,true);const focus=screen.getWorldPosition(new THREE.Vector3()),position=focus.clone().add(new THREE.Vector3(0,.1,Math.min(aspect<1?1.55:1.4,5.72-focus.z)));return{focus,position,fov:aspect<1?34:30}}if(['weight-ready','handle-instruction','handles','measuring','finished'].includes(stage)){const focus=visitor.g.position.clone().lerp(staff.g.position,.32).add(new THREE.Vector3(0,1.15,0));return{focus,position:new THREE.Vector3(-3.55,2.75,5.55),fov:aspect<1?54:46}}const focus=visitor.g.position.clone().lerp(staff.g.position,.35).add(new THREE.Vector3(0,1.15,0)),position=focus.clone().add(new THREE.Vector3(aspect<1?2.8:3.2,aspect<1?1.65:1.5,-3.15));position.x=THREE.MathUtils.clamp(position.x,-7.35,7.35);position.z=THREE.MathUtils.clamp(position.z,-5.45,5.55);return{focus,position,fov:aspect<1?58:52}},
+  camera(aspect){if(['invitation','walking','walking-back'].includes(stage)){const focus=staff.g.position.clone().add(new THREE.Vector3(0,1.17,0));const position=new THREE.Vector3(Math.min(7.25,focus.x+2.8),3.35,THREE.MathUtils.clamp(focus.z+2.7,-5.45,5.55));return{focus,position,fov:aspect<1?57:51}}if(['weight-result','result'].includes(stage)&&screen){device.updateWorldMatrix(true,true);const focus=screen.getWorldPosition(new THREE.Vector3()),position=focus.clone().add(new THREE.Vector3(0,.1,Math.min(aspect<1?1.55:1.4,5.72-focus.z)));return{focus,position,fov:aspect<1?34:30}}if(['weight-ready','handle-instruction','handles','measuring','finished'].includes(stage)){const focus=visitor.g.position.clone().lerp(staff.g.position,.32).add(new THREE.Vector3(0,1.15,0));return{focus,position:new THREE.Vector3(-3.55,2.75,5.55),fov:aspect<1?54:46}}const focus=visitor.g.position.clone().lerp(staff.g.position,.35).add(new THREE.Vector3(0,1.15,0)),position=focus.clone().add(new THREE.Vector3(aspect<1?2.8:3.2,aspect<1?1.65:1.5,-3.15));position.x=THREE.MathUtils.clamp(position.x,-7.35,7.35);position.z=THREE.MathUtils.clamp(position.z,-5.45,5.55);return{focus,position,fov:aspect<1?58:52}},
   snapshot(){const expected=Math.atan2(device.position.x-visitor.g.position.x,device.position.z-visitor.g.position.z),facingDevice=Math.abs(Math.atan2(Math.sin(visitor.g.rotation.y-expected),Math.cos(visitor.g.rotation.y-expected)))<.05;return{active,stage,gender:getGender(),display:display?.value||null,shoesOn:visitor.shoes.every(s=>s.visible),barefoot:visitor.feet.every(f=>f.visible),looseShoesVisible:loose.visible,onPlatform:visitor.g.position.distanceTo(platform)<.02,facingDevice,gripping:visitor.arms.some(a=>Math.abs(a.rotation.z)>.5),staffAtStation:staff.g.position.distanceTo(staffStation)<.03,staffSeated:staff.g.position.distanceTo(staffSeat)<.03&&staff.legs.some(l=>Math.abs(l.rotation.x)>1)}}
  };return api;
 }

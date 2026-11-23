@@ -33,27 +33,55 @@ function bendForAdams(visitor, amount){
  upperBody.rotation.x*=amount;
 }
 
-export function createPostureScene(visitor,staff,device,pose,onStage,onComplete){
+export function createPostureScene(visitor,staff,device,pose,onStage,onComplete,planWalk){
  const seat=new THREE.Vector3(0,.13,2),staffSeat=new THREE.Vector3(0,.13,-2);
  // Align the soles with the top of the red mat.
  const mat=device.localToWorld(device.userData.postureStandingPoint.clone());
  mat.y-=.02;
- const staffSpot=new THREE.Vector3(device.position.x-1.45,0,device.position.z-1.25);
+ const staffSpot=new THREE.Vector3(device.position.x+.95,0,device.position.z-2.1);
+ const staffFacing=Math.atan2(device.position.x-staffSpot.x,device.position.z-1.38-staffSpot.z);
  const approach=new THREE.Vector3(device.position.x-1.8,0,device.position.z+1.65);
- const route=[new THREE.Vector3(0,0,2),new THREE.Vector3(0,0,5.65),new THREE.Vector3(4.6,0,5.65),approach,mat];
+ let route,staffRoute,visitorReturn,staffReturn;
  let active=false,stage='idle',started=0,frame=0;
  const shoes=visitor.shoes.map((shoe,i)=>{const copy=shoe.clone(true);copy.position.set(approach.x+(i?-.16:.16),.42,approach.z);device.parent.add(copy);copy.visible=false;return copy});
  function shoeState(on){visitor.shoes.forEach(s=>s.visible=on);visitor.feet.forEach(f=>f.visible=!on);shoes.forEach(s=>s.visible=!on)}
  function seatBoth(){pose(visitor,false);pose(staff,false);visitor.g.rotation.x=0;staff.g.rotation.x=0;visitor.g.position.copy(seat);visitor.g.rotation.y=Math.PI;pose(visitor,true);staff.g.position.copy(staffSeat);staff.g.rotation.y=0;pose(staff,true);shoeState(true)}
- function walk(model,points,t){const segment=Math.min(points.length-2,Math.floor(t*(points.length-1))),f=Math.min(1,t*(points.length-1)-segment),a=points[segment],b=points[segment+1];model.g.position.lerpVectors(a,b,f);model.g.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);model.legs.forEach((leg,i)=>leg.rotation.x=Math.sin(t*36+i*Math.PI)*.25)}
+ function walk(model,points,t){
+  const lengths=points.slice(1).map((point,index)=>point.distanceTo(points[index]));
+  let distance=lengths.reduce((sum,length)=>sum+length,0)*t;
+  const index=lengths.findIndex((length,i)=>{
+   if(distance<=length||i===lengths.length-1)return true;
+   distance-=length;
+   return false;
+  });
+  const a=points[index],b=points[index+1];
+  model.g.position.lerpVectors(a,b,Math.min(distance/lengths[index],1));
+  model.g.rotation.set(0,Math.atan2(b.x-a.x,b.z-a.z),0);
+  model.legs.forEach((leg,i)=>leg.rotation.x=Math.sin(t*36+i*Math.PI)*.25);
+  model.arms.forEach((arm,i)=>arm.rotation.x=-Math.sin(t*36+i*Math.PI)*.18);
+ }
  function resetAdams(){visitor.upperBody.rotation.x=0;visitor.arms.forEach(arm=>{arm.rotation.set(0,0,0);arm.userData.elbow.rotation.set(0,0,0)})}
  function reset(){if(active)resetAdams();active=false;cancelAnimationFrame(frame);stage='idle';seatBoth()}
- const api={start(){reset();active=true;started=performance.now();onStage('setup');frame=requestAnimationFrame(loop)},cancel:reset,dispose(){reset();shoes.forEach(s=>s.removeFromParent())},get active(){return active},get stage(){return stage},
+ const api={
+ start(){
+  const visitorWalk=planWalk(new THREE.Vector3(0,0,1.025),approach);
+  const matWalk=planWalk(approach,mat.clone().setY(0));
+  const guideWalk=planWalk(new THREE.Vector3(0,0,-1.025),staffSpot);
+  if(!visitorWalk||!matWalk||!guideWalk)return false;
+  route=[seat.clone().setY(0),...visitorWalk,...matWalk.slice(1,-1),mat];
+  staffRoute=[staffSeat.clone().setY(0),...guideWalk];
+  visitorReturn=[...route].reverse();
+  staffReturn=[...staffRoute].reverse();
+  reset();active=true;started=performance.now();stage='setup';onStage(stage);
+  frame=requestAnimationFrame(loop);
+  return true;
+ },
+ cancel:reset,dispose(){reset();shoes.forEach(s=>s.removeFromParent())},get active(){return active},get stage(){return stage},
  update(now){if(!active)return;let elapsed=(now-started)/1000,entry;for(const item of POSTURE_STEPS){if(elapsed<item[1]){entry=item;break}elapsed-=item[1]}if(!entry){resetAdams();active=false;seatBoth();onComplete();stage='complete';onStage('complete');return}const [next,duration]=entry,f=elapsed/duration;if(next!==stage){stage=next;onStage(next)}
- if(['setup','clear-mat','invitation'].includes(next)){pose(visitor,true);visitor.g.position.copy(seat);visitor.g.rotation.y=Math.PI;pose(staff,false);if(next==='setup'){walk(staff,[staffSeat.clone().setY(0),new THREE.Vector3(0,0,4.8),new THREE.Vector3(4.65,0,4.8),staffSpot],f)}else{staff.g.position.copy(staffSpot);staff.g.rotation.y=0;staff.g.rotation.x=.27}return}
+ if(['setup','clear-mat','invitation'].includes(next)){pose(visitor,true);visitor.g.position.copy(seat);visitor.g.rotation.y=Math.PI;pose(staff,false);if(next==='setup'){walk(staff,staffRoute,f)}else{staff.g.position.copy(staffSpot);staff.g.rotation.y=staffFacing;staff.g.rotation.x=.27}return}
  if(next==='prepare'){pose(visitor,false);pose(staff,false);walk(visitor,route,f);staff.g.position.copy(staffSpot);staff.g.rotation.x=.22;shoeState(f<.78);return}
- if(next==='return'){pose(visitor,false);pose(staff,false);walk(visitor,[...route].reverse(),f);staff.g.position.lerpVectors(staffSpot,staffSeat,f);shoeState(f<.2?false:true);return}
- pose(visitor,false);pose(staff,false);visitor.g.position.copy(mat);staff.g.position.copy(staffSpot);staff.g.rotation.y=0;staff.g.rotation.x=.27;shoeState(false);
+ if(next==='return'){pose(visitor,false);pose(staff,false);walk(visitor,visitorReturn,f);walk(staff,staffReturn,f);shoeState(f>=.2);return}
+ pose(visitor,false);pose(staff,false);visitor.g.position.copy(mat);staff.g.position.copy(staffSpot);staff.g.rotation.y=staffFacing;staff.g.rotation.x=.27;shoeState(false);
  visitor.g.rotation.x=0;visitor.g.rotation.y=next==='side'||next==='side-ready'?Math.PI/2:next==='rear'||next==='rear-ready'||next==='adams'||next==='adams-ready'||next==='adams-guide'?0:Math.PI;
  resetAdams();
  if(next==='adams'||next==='precautions'){
@@ -62,6 +90,15 @@ export function createPostureScene(visitor,staff,device,pose,onStage,onComplete)
   visitor.g.rotation.y=0;
   bendForAdams(visitor,next==='adams'?bend:1-bend);
  }
- },camera(aspect){const focus=visitor.g.position.clone().lerp(staff.g.position,.28).add(new THREE.Vector3(0,1.25,0));const position=new THREE.Vector3(aspect<1?2.6:2.1,aspect<1?2.3:2.8,5.6);return{focus,position,fov:aspect<1?59:51}},snapshot(){return{active,stage,visitorOnMat:visitor.g.position.distanceTo(mat)<.1,staffAtCamera:staff.g.position.distanceTo(staffSpot)<.1,shoesOn:visitor.shoes.every(s=>s.visible)}}};
+ },camera(aspect){
+  if(stage==='setup'){
+   const focus=staff.g.position.clone().add(new THREE.Vector3(0,1.17,0));
+   const position=new THREE.Vector3(Math.max(-7.25,focus.x-2.8),3.35,THREE.MathUtils.clamp(focus.z+2.7,-5.45,5.55));
+   return {focus,position,fov:aspect<1?57:51};
+  }
+  const focus=visitor.g.position.clone().lerp(staff.g.position,.28).add(new THREE.Vector3(0,1.25,0));
+  const position=new THREE.Vector3(aspect<1?2.6:2.1,aspect<1?2.3:2.8,5.6);
+  return {focus,position,fov:aspect<1?59:51};
+ },snapshot(){return{active,stage,visitorOnMat:visitor.g.position.distanceTo(mat)<.1,staffAtCamera:staff.g.position.distanceTo(staffSpot)<.1,shoesOn:visitor.shoes.every(s=>s.visible)}}};
  function loop(now){api.update(now);if(active)frame=requestAnimationFrame(loop)}return api;
 }

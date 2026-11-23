@@ -6,8 +6,8 @@ import {createGlucoseScene} from './cardio-glucose-scene.js?v=glucose-1';
 import {createCholesterolScene} from './cardio-cholesterol-scene.js?v=cholesterol-2';
 import {createHbA1cScene} from './cardio-hba1c-scene.js?v=hba1c-1';
 import {createArterialScene} from './cardio-arterial-scene.js?v=arterial-3';
-import {createMuscleInBodyScene} from './muscle-inbody-scene.js?v=inbody-4';
-import {createPostureScene} from './posture-scene.js?v=mat-2';
+import {createMuscleInBodyScene} from './muscle-inbody-scene.js?v=walk-1';
+import {createPostureScene} from './posture-scene.js?v=walk-1';
 import {createEducationScreenMedia} from './education-screen.js?v=education-screen-1';
 import {isReceptionApproach,outsideReceptionArea,inReceptionFront} from './reception-flow.js?v=return-1';
 import {makeDevice} from './center-models.js?v=posture-mat-2';
@@ -98,13 +98,14 @@ box(2.5,1.4,.06,-2.9,2.3,-4.37,mats.blue);box(.08,1.5,.12,-2.9,2.3,-4.28,mats.wh
 table(0,0,3.4);if(def.id!=='cardio'){box(.75,.04,.6,-.6,1.26,.1,mats.white);box(.35,.07,.55,.7,1.26,0,mats.blue)}
 const employeeChair=chair(0,-2,mats.green),visitorChair=chair(0,2,mats.blue);visitorChair.rotation.y=Math.PI;
 const employee=person('#e8f3ef');employee.g.position.set(0,.13,-2);sitPose(employee,true);
+if(def.id==='muscle')employee.g.traverse(part=>{part.userData.navigationActor=true});
 if(detailed&&def.id==='cardio')waistScene=createWaistScene(avatar,employee,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-waist-stage',{detail:stage}));if(stage==='complete')heightScene?.start()});
 const tag=label('가상 안내 직원',0,2.9,-2,'#305d4e',2.8);tag.material.toneMapped=false;
 if(!['general','cardio'].includes(def.id))plant(-3.9,-3.1,.9);plant(def.id==='education'?-3.8:3.8,3.2,.8);
 const shelf=box(2,1.8,.5,3.5,.9,-4.1,mats.wood);for(let i=0;i<5;i++)box(.22,.7,.35,2.8+i*.32,1.05,-4,mats.white);
 if(def.id==='cardio'){let cardioBed=null;for(const item of CARDIO_EQUIPMENT){const device=addDevice(item.id,item.x,item.z,detailed,item.y);if(item.id==='bed')cardioBed=device;if(detailed&&item.id==='cholesterol')cholesterolScene=createCholesterolScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-cholesterol-stage',{detail:stage}))},()=>seat(true));if(detailed&&item.id==='glucose')glucoseScene=createGlucoseScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-glucose-stage',{detail:stage}));if(stage==='complete')queueMicrotask(()=>{if(cardioFlow==='hba1c')hba1cScene?.start();else if(cardioFlow==='arterial')arterialScene?.start();else if(cardioFlow==='standard')cholesterolScene?.start()})},()=>seat(true));if(detailed&&item.id==='hba1c')hba1cScene=createHbA1cScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-hba1c-stage',{detail:stage}))},()=>seat(true));if(detailed&&item.id==='arterial')arterialScene=createArterialScene(avatar,employee,cardioBed,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-arterial-stage',{detail:stage}))},()=>seat(true));if(detailed&&item.id==='heightweight')heightScene=createHeightScene(avatar,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-height-stage',{detail:stage}));if(stage==='complete')bpScene?.start()},()=>seat(true))}if(detailed){deviceTag('신장·체중 측정기','heightweight',-3.85,-3.1,true);deviceTag('동맥경화 검사기','arterial',2.55,-2.65,true)}}
 if(def.id==='general')makeDevice('bed',-3,-2.1,{parent:buildRoot,box,cylinder,sphere,mat,mats});
-if(def.id==='muscle'&&detailed){for(let z=-5.8;z<6;z+=.5)box(15.9,.015,.025,0,.09,z,'#c5aa82');for(const [type,x,z,name] of [['bike',-5,-3.2,'실내 자전거'],['treadmill',-5,.5,'걷기 운동기구'],['ceragem',5,-2.5,'세라젬'],['massage',5,1.5,'안마기'],['weights',0,-4.6,'운동 소도구'],['inbody',-6.7,4.4,'인바디 · 체성분 분석기'],['posture',6.3,4.2,'체형분석기']]){const device=addDevice(type,x,z,true);deviceTag(name,type,x,z,true);if(type==='inbody')muscleInbodyScene=createMuscleInBodyScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('muscle-inbody-stage',{detail:stage}))},()=>seat(true),()=>avatarGender);if(type==='posture')postureScene=createPostureScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('muscle-posture-stage',{detail:stage}))},()=>seat(true))}}
+if(def.id==='muscle'&&detailed){for(let z=-5.8;z<6;z+=.5)box(15.9,.015,.025,0,.09,z,'#c5aa82');for(const [type,x,z,name] of [['bike',-5,-3.2,'실내 자전거'],['treadmill',-5,.5,'걷기 운동기구'],['ceragem',5,-2.5,'세라젬'],['massage',5,1.5,'안마기'],['weights',0,-4.6,'운동 소도구'],['inbody',-6.7,4.4,'인바디 · 체성분 분석기'],['posture',6.3,4.2,'체형분석기']]){const device=addDevice(type,x,z,true);deviceTag(name,type,x,z,true);if(type==='inbody')muscleInbodyScene=createMuscleInBodyScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('muscle-inbody-stage',{detail:stage}))},()=>seat(true),()=>avatarGender,planConsultationWalk);if(type==='posture')postureScene=createPostureScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('muscle-posture-stage',{detail:stage}))},()=>seat(true),planConsultationWalk)}}
 if(def.id==='environment'){box(1.6,1.1,.5,-3.3,.6,-1,mats.green);for(let i=0;i<3;i++)cylinder(.15,.4,-3.8+i*.45,1.4,-1,[mats.yellow,mats.blue,mats.white][i]);box(1.2,1,.05,.3,2.4,-4.35,mats.yellow)}
 if(def.id==='stress'||def.id==='trauma'){const sofa=chair(-3.1,-1.4,mat('#deded2'));sofa.scale.x=1.65;cylinder(.7,.6,-2.7,.32,.3,mats.white);plant(3,-2.5,1.2);box(1.7,1.1,.05,.3,2.4,-4.35,def.color)}
 if(detailed){register(visitorChair,'seat',def,roomClickable);register(employee.g,'talk',def,roomClickable);register(tag,'talk',def,roomClickable);const seatTag=label('방문자 의자',0,1.3,2.9,'#305d4e',2.3);seatTag.material.toneMapped=false;seatTag.userData.hideDuringWaist=true;register(seatTag,'seat',def,roomClickable)}
@@ -175,8 +176,8 @@ function cancelCardioMeasurement(){
  if(muscleInbodyScene?.active){muscleInbodyScene.cancel();applyView();document.dispatchEvent(new CustomEvent('muscle-inbody-stage',{detail:'cancelled'}))}
  if(postureScene?.active){postureScene.cancel();applyView();document.dispatchEvent(new CustomEvent('muscle-posture-stage',{detail:'cancelled'}))}
 }
-document.addEventListener('muscle-inbody-start',()=>{if(activeRoom?.id!=='muscle'||!seated||!muscleInbodyScene)return;keys.clear();destination=null;pathQueue=[];pathRequest++;marker.visible=false;muscleInbodyScene.start();status.textContent='인바디 체성분검사 동작 체험을 시작합니다.';resize()});
-document.addEventListener('muscle-posture-start',()=>{if(activeRoom?.id!=='muscle'||!seated||!postureScene)return;keys.clear();destination=null;pathQueue=[];pathRequest++;marker.visible=false;postureScene.start();status.textContent='체형분석 가상 체험을 시작합니다.';resize()});
+document.addEventListener('muscle-inbody-start',()=>{if(activeRoom?.id!=='muscle'||!seated||!muscleInbodyScene)return;keys.clear();destination=null;pathQueue=[];pathRequest++;marker.visible=false;if(!muscleInbodyScene.start()){status.textContent='장비까지 안전한 통로를 찾지 못했어요.';return}status.textContent='인바디 체성분검사 동작 체험을 시작합니다.';resize()});
+document.addEventListener('muscle-posture-start',()=>{if(activeRoom?.id!=='muscle'||!seated||!postureScene)return;keys.clear();destination=null;pathQueue=[];pathRequest++;marker.visible=false;if(!postureScene.start()){status.textContent='장비까지 안전한 통로를 찾지 못했어요.';return}status.textContent='체형분석 가상 체험을 시작합니다.';resize()});
 document.addEventListener('cardio-waist-cancel',cancelCardioMeasurement);
 document.addEventListener('cardio-measurement-cancel',cancelCardioMeasurement);
 document.addEventListener('cardio-waist-start',()=>{if(activeRoom?.id!=='cardio'||!seated||!waistScene)return;stand();keys.clear();destination=null;pathQueue=[];pathRequest++;marker.visible=false;waistScene.start();status.textContent='양팔을 어깨높이로 올리고 복부둘레 측정 동작을 체험합니다.';resize()});
@@ -206,10 +207,42 @@ document.addEventListener('counsel-enter',e=>{const def=defs.find(d=>d.id===e.de
 document.querySelector('#sit').onclick=()=>{if(activeRoom){seated?stand():seat()}else if(waitingSeated)stand();else if(Math.hypot(avatar.g.position.x-WAITING_SOFA.approach.x,avatar.g.position.z-WAITING_SOFA.approach.z)<=WAITING_SOFA.nearbyRadius)requestWaitingSeat();else status.textContent='대기실 소파 가까이로 이동해 주세요.'};
 
 function isBlocked(x,z,r=.3){if(!activeRoom&&!onFloor(x,z))return true;return obstacles.some(b=>x>b.min.x-r&&x<b.max.x+r&&z>b.min.z-r&&z<b.max.z+r)}
+function planConsultationWalk(from,to){
+ const step=.1,minX=-8.5,minZ=-6.5,width=171,height=131;
+ const clear=(x,z)=>!isBlocked(x,z,.34);
+ const point=(x,z)=>new THREE.Vector3(minX+x*step,0,minZ+z*step);
+ const grid=Array.from({length:height},(_,z)=>Array.from({length:width},(_,x)=>Number(!clear(minX+x*step,minZ+z*step))));
+ function connect(endpoint){
+  const x=Math.round((endpoint.x-minX)/step),z=Math.round((endpoint.z-minZ)/step);
+  const candidates=[];
+  for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){
+   if(grid[z+dz]?.[x+dx]!==0)continue;
+   const target=point(x+dx,z+dz);
+   if([0,.25,.5,.75,1].every(t=>clear(THREE.MathUtils.lerp(endpoint.x,target.x,t),THREE.MathUtils.lerp(endpoint.z,target.z,t))))
+    candidates.push({x:x+dx,z:z+dz,distance:target.distanceToSquared(endpoint)});
+  }
+  return candidates.sort((a,b)=>a.distance-b.distance)[0];
+ }
+ const start=connect(from),end=connect(to);
+ if(!start||!end)return null;
+ const finder=new window.EasyStar.js();
+ finder.setGrid(grid);
+ finder.setAcceptableTiles([0]);
+ finder.enableSync();
+ let path=null;
+ finder.findPath(start.x,start.z,end.x,end.z,result=>{
+  if(result)path=[from,...result.filter((p,i)=>{
+   const a=result[i-1],b=result[i+1];
+   return !a||!b||(p.x-a.x)!==(b.x-p.x)||(p.y-a.y)!==(b.y-p.y);
+  }).map(({x,y})=>point(x,y)),to];
+ });
+ finder.calculate();
+ return path?.filter((p,i)=>i===0||p.distanceToSquared(path[i-1])>1e-8)??null;
+}
 function rebuildNavigation(){
 renderer.shadowMap.needsUpdate=true;
 const root=activeRoom?interior:lobby;root.updateMatrixWorld(true);obstacles=[];cameraSolids=[];
-root.traverse(o=>{if(!o.isMesh||o.material?.visible===false)return;const bounds=new THREE.Box3().setFromObject(o);if(bounds.max.y>.35&&bounds.min.y<2&&!o.material.transparent)obstacles.push(bounds);if(bounds.max.y>.35&&bounds.min.y<4.6&&!o.material.transparent)cameraSolids.push(o)});
+root.traverse(o=>{if(!o.isMesh||o.material?.visible===false||o.userData.navigationActor)return;const bounds=new THREE.Box3().setFromObject(o);if(bounds.max.y>.35&&bounds.min.y<2&&!o.material.transparent)obstacles.push(bounds);if(bounds.max.y>.35&&bounds.min.y<4.6&&!o.material.transparent)cameraSolids.push(o)});
 const size=activeRoom?roomSize(activeRoom):null;const minX=activeRoom?-size.w/2+.45:bounds.minX,minZ=activeRoom?-size.d/2+.45:bounds.minZ,maxX=activeRoom?size.w/2-.45:bounds.maxX,maxZ=activeRoom?size.d/2-.45:bounds.maxZ;
 const step=.4,width=Math.floor((maxX-minX)/step)+1,height=Math.floor((maxZ-minZ)/step)+1;const grid=Array.from({length:height},()=>Array(width).fill(0));
 for(const b of obstacles){const x0=Math.max(0,Math.floor((b.min.x-.3-minX)/step)),x1=Math.min(width-1,Math.ceil((b.max.x+.3-minX)/step)),z0=Math.max(0,Math.floor((b.min.z-.3-minZ)/step)),z1=Math.min(height-1,Math.ceil((b.max.z+.3-minZ)/step));for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++)grid[z][x]=1}
