@@ -22,6 +22,6 @@ export function createPostureScene(visitor,staff,device,pose,onStage,onComplete)
  pose(visitor,false);pose(staff,false);visitor.g.position.copy(mat);staff.g.position.copy(staffSpot);staff.g.rotation.y=0;staff.g.rotation.x=.27;shoeState(false);
  visitor.g.rotation.x=(next==='adams'||next==='adams-guide')?.78:0;visitor.g.rotation.y=next==='side'||next==='side-ready'?Math.PI/2:next==='rear'||next==='rear-ready'||next==='adams'||next==='adams-guide'?0:Math.PI;
  if(next==='adams'){visitor.arms.forEach(a=>a.rotation.x=-.65)}
- },snapshot(){return{active,stage,visitorOnMat:visitor.g.position.distanceTo(mat)<.1,staffAtCamera:staff.g.position.distanceTo(staffSpot)<.1,shoesOn:visitor.shoes.every(s=>s.visible)}}};
+ },camera(aspect){const focus=visitor.g.position.clone().lerp(staff.g.position,.28).add(new THREE.Vector3(0,1.25,0));return{focus,position:focus.clone().add(new THREE.Vector3(aspect<1?2.8:4,aspect<1?1.5:1.9,aspect<1?3.5:4.8)),fov:aspect<1?55:48}},snapshot(){return{active,stage,visitorOnMat:visitor.g.position.distanceTo(mat)<.1,staffAtCamera:staff.g.position.distanceTo(staffSpot)<.1,shoesOn:visitor.shoes.every(s=>s.visible)}}};
  function loop(now){api.update(now);if(active)frame=requestAnimationFrame(loop)}return api;
 }

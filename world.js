@@ -7,7 +7,7 @@ import {createCholesterolScene} from './cardio-cholesterol-scene.js?v=cholestero
 import {createHbA1cScene} from './cardio-hba1c-scene.js?v=hba1c-1';
 import {createArterialScene} from './cardio-arterial-scene.js?v=arterial-3';
 import {createMuscleInBodyScene} from './muscle-inbody-scene.js?v=inbody-4';
-import {createPostureScene} from './posture-scene.js?v=posture-1';
+import {createPostureScene} from './posture-scene.js?v=posture-2';
 import {createEducationScreenMedia} from './education-screen.js?v=education-screen-1';
 import {isReceptionApproach,outsideReceptionArea,inReceptionFront} from './reception-flow.js?v=return-1';
 import {makeDevice} from './center-models.js?v=inbody-flow-1';
@@ -263,6 +263,7 @@ function applyView(){renderer.shadowMap.needsUpdate=true;for(const o of waistOcc
 for(const id of ['follow','eye','map'])document.querySelector('#view-'+id).onclick=()=>{viewMode=id;initial=true;seatAfterMove=false;receptionAfterIntake=false;destination=null;pathQueue=[];pathRequest++;applyView();resize()};
 document.querySelector('#fullscreen').onclick=async()=>{const shell=document.querySelector('.world-shell');try{if(document.fullscreenElement)await document.exitFullscreen();else await shell.requestFullscreen()}catch{status.textContent='이 브라우저에서는 전체화면을 지원하지 않습니다.'}};
 function updateWalkCamera(){
+if(postureScene?.active&&viewMode!=='map'){const shot=postureScene.camera(camera.aspect);desiredLook.copy(shot.focus);desiredCam.copy(shot.position);if(camera.fov!==shot.fov){camera.fov=shot.fov;camera.updateProjectionMatrix()}return}
 if(muscleInbodyScene?.active&&viewMode!=='map'){const shot=muscleInbodyScene.camera(camera.aspect);desiredLook.copy(shot.focus);desiredCam.copy(shot.position);if(camera.fov!==shot.fov){camera.fov=shot.fov;camera.updateProjectionMatrix()}return}
 if(arterialScene?.active&&viewMode!=='map'){const shot=arterialScene.camera(camera.aspect);desiredLook.copy(shot.focus);desiredCam.copy(shot.position);if(camera.fov!==shot.fov){camera.fov=shot.fov;camera.updateProjectionMatrix()}return}
 if(hba1cScene?.active&&viewMode!=='map'){const shot=hba1cScene.camera(camera.aspect);desiredLook.copy(shot.focus);desiredCam.copy(shot.position);if(camera.fov!==shot.fov){camera.fov=shot.fov;camera.updateProjectionMatrix()}return}
