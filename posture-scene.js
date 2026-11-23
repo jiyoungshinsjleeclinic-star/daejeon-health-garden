@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 
 export const POSTURE_STEPS=[
- ['setup',4],['clear-mat',4],['invitation',4],['prepare',7],['front-ready',4],['front',7],['side-ready',3],['side',7],['rear-ready',3],['rear',7],['adams-guide',7],['adams',7],['precautions',6],['remeasure',6],['summary',6],['finish',4],['return',6]
+ ['setup',4],['clear-mat',4],['invitation',4],['prepare',7],['front-ready',4],['front',7],['side-ready',3],['side',7],['rear-ready',3],['rear',7],['adams-ready',3],['adams-guide',7],['adams',7],['precautions',6],['remeasure',6],['summary',6],['finish',4],['return',6]
 ];
 export function createPostureScene(visitor,staff,device,pose,onStage,onComplete){
  const seat=new THREE.Vector3(0,.13,2),staffSeat=new THREE.Vector3(0,.13,-2);
@@ -20,7 +20,7 @@ export function createPostureScene(visitor,staff,device,pose,onStage,onComplete)
  if(next==='prepare'){pose(visitor,false);pose(staff,false);walk(visitor,route,f);staff.g.position.copy(staffSpot);staff.g.rotation.x=.22;shoeState(f<.78);return}
  if(next==='return'){pose(visitor,false);pose(staff,false);walk(visitor,[...route].reverse(),f);staff.g.position.lerpVectors(staffSpot,staffSeat,f);shoeState(f<.2?false:true);return}
  pose(visitor,false);pose(staff,false);visitor.g.position.copy(mat);staff.g.position.copy(staffSpot);staff.g.rotation.y=0;staff.g.rotation.x=.27;shoeState(false);
- visitor.g.rotation.x=(next==='adams'||next==='adams-guide')?.78:0;visitor.g.rotation.y=next==='side'||next==='side-ready'?Math.PI/2:next==='rear'||next==='rear-ready'||next==='adams'||next==='adams-guide'?0:Math.PI;
+ visitor.g.rotation.x=(next==='adams'||next==='adams-guide')?.78:0;visitor.g.rotation.y=next==='side'||next==='side-ready'?Math.PI/2:next==='rear'||next==='rear-ready'||next==='adams'||next==='adams-ready'||next==='adams-guide'?0:Math.PI;
  if(next==='adams'){visitor.arms.forEach(a=>a.rotation.x=-.65)}
  },camera(aspect){const focus=visitor.g.position.clone().lerp(staff.g.position,.28).add(new THREE.Vector3(0,1.25,0));const position=new THREE.Vector3(aspect<1?2.6:2.1,aspect<1?2.3:2.8,5.6);return{focus,position,fov:aspect<1?59:51}},snapshot(){return{active,stage,visitorOnMat:visitor.g.position.distanceTo(mat)<.1,staffAtCamera:staff.g.position.distanceTo(staffSpot)<.1,shoesOn:visitor.shoes.every(s=>s.visible)}}};
  function loop(now){api.update(now);if(active)frame=requestAnimationFrame(loop)}return api;

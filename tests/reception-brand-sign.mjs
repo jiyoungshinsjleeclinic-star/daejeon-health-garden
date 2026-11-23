@@ -13,6 +13,6 @@ assert(world.includes("c.strokeStyle='#69ad39'"));
 assert(world.includes("c.strokeStyle='#1788bb'"));
 assert(world.includes('receptionBrandSign();'));
 assert(world.indexOf('box(11.3,2.8,.15')<world.indexOf('receptionBrandSign();'));
-assert(html.includes('world.js?v=posture-mat-1'));
+assert(html.includes('world.js?v=posture-photos-1'));
 
 console.log('Reception brand sign placement and cache version: passed.');
