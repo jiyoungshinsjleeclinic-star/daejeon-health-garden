@@ -26,6 +26,21 @@ function box(w,h,d,x,y,z,m,parent=buildRoot){const a=new THREE.Mesh((Math.max(w,
 function cylinder(r,h,x,y,z,m,parent=buildRoot){const a=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,24),typeof m==='string'?mat(m):m);a.position.set(x,y,z);a.castShadow=true;a.receiveShadow=true;parent.add(a);return a}
 function sphere(r,x,y,z,m,parent=buildRoot){const a=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),m);a.position.set(x,y,z);a.castShadow=true;parent.add(a);return a}
 function label(text,x,y,z,color='#305d4e',w=3.5){const canvas=document.createElement('canvas');canvas.width=768;canvas.height=160;const c=canvas.getContext('2d');c.fillStyle='#fffdf6';c.beginPath();c.roundRect(6,6,756,148,26);c.fill();c.strokeStyle='#d4e3d6';c.lineWidth=6;c.stroke();c.fillStyle=color;c.textAlign='center';c.textBaseline='middle';c.font='bold 46px sans-serif';c.fillText(text,384,80);const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;const a=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:true}));a.scale.set(w,w*160/768,1);a.position.set(x,y,z);a.userData.labelScale=a.scale.clone();worldLabels.push(a);buildRoot.add(a);return a}
+function receptionBrandSign(){
+ const canvas=document.createElement('canvas');canvas.width=1600;canvas.height=260;const c=canvas.getContext('2d');
+ c.clearRect(0,0,canvas.width,canvas.height);
+ const ring=c.createLinearGradient(64,38,255,218);ring.addColorStop(0,'#1598c8');ring.addColorStop(.46,'#2479ae');ring.addColorStop(.5,'#6cab3f');ring.addColorStop(1,'#8abf35');
+ c.strokeStyle=ring;c.lineWidth=42;c.beginPath();c.arc(154,130,76,.12,Math.PI*1.84);c.stroke();
+ c.fillStyle='#126b9d';c.beginPath();c.arc(194,47,17,0,Math.PI*2);c.fill();
+ c.fillStyle='#225f94';c.textBaseline='middle';c.font='700 72px sans-serif';c.fillText('대전근로자',290,134);
+ const firstWidth=c.measureText('대전근로자').width;c.fillStyle='#eb7734';c.fillText('건강',290+firstWidth,134);
+ const secondWidth=c.measureText('건강').width;c.fillStyle='#225f94';c.fillText('센터',290+firstWidth+secondWidth,134);
+ c.fillStyle='#315f53';c.font='600 29px sans-serif';c.fillText('건강플러스, 행복플러스',294,55);
+ const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+ const backing=box(7.7,1.3,.08,0,2.05,-.19,new THREE.MeshStandardMaterial({color:'#fffef9',roughness:.45,metalness:.03}));
+ const face=new THREE.Mesh(new THREE.PlaneGeometry(7.45,1.21),new THREE.MeshBasicMaterial({map:texture,transparent:true,toneMapped:false}));face.position.set(0,2.05,-.142);buildRoot.add(face);
+ backing.userData.brandSign=true;face.userData.brandSign=true;
+}
 function plant(x,z,scale=1){return makePlant(x,z,scale,buildRoot,mats)}
 function chair(x,z,color){return makeChair(x,z,color,buildRoot,mats)}
 function table(x,z,w=2.5){return makeTable(x,z,w,buildRoot,mats)}
@@ -107,6 +122,7 @@ const receptionist=person('#f2f4f1');receptionist.g.position.set(0,0,desk.z-1.1)
 register(box(desk.width,2.3,1.15,desk.x,1,desk.z,new THREE.MeshBasicMaterial({visible:false})),'facility',{id:'reception'});
 const receptionLabel=label('접수데스크',desk.x,3.1,desk.z,'#305d4e',4);receptionLabel.material.toneMapped=false;register(receptionLabel,'facility',{id:'reception'});
 box(11.3,2.8,.15,0,1.4,-.3,mats.white);
+receptionBrandSign();
 const f=CENTER_PLAN.facilities;
 for(const key of ['leftBP','rightBP']){const device=addDevice('bloodpressure',f[key].x,f[key].z);if(key==='rightBP')rightBP=device}
 deviceTag('자동혈압계','bloodpressure',f.leftBP.x,f.leftBP.z);deviceTag('자동혈압계','bloodpressure',f.rightBP.x,f.rightBP.z);
