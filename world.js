@@ -186,11 +186,58 @@ function seatAt(x,z,resume=false,approach=null){if(approach?.equipment){applyEqu
 function walkToSeat(target){if(!activeRoom)return;const approach=target.approach||{x:target.x,z:target.z+1.2};if(Math.hypot(avatar.g.position.x-approach.x,avatar.g.position.z-approach.z)<.25){seatAt(target.x,target.z,false,approach);return}if(moveTo(approach.x,approach.z)){pendingSeat={...target,approach};status.textContent='의자 뒤의 빈 통로로 이동하고 있어요.'}}
 function seat(resume=false){const target=activeRoom?.id==='education'?(educationSeatPositions[0]||{x:-3,z:-2.65,approach:{x:-3,z:-1.2}}):{x:0,z:2,approach:{x:0,z:3.8}};if(resume)seatAt(target.x,target.z,true,target.approach);else walkToSeat(target)}
 document.addEventListener('education-seat-select',event=>{if(activeRoom?.id!=='education')return;const target=educationSeatPositions[event.detail?.index||0];if(target)walkToSeat(target)});
+let waitingIntakePending=false,waitingSlideX=WAITING_SOFA.seat.x;
+const waitingSofaLeft=-12,waitingSofaRight=WAITING_SOFA.seat.x;
+document.addEventListener('reception-visit-choice',event=>{waitingIntakePending=event.detail==='first'});
+document.addEventListener('intake-reviewed',()=>{waitingIntakePending=false});
+function announceWaitingSeat(){
+ status.textContent='대기실 소파에 앉았어요. 좌우 방향키 또는 화면 버튼으로 자리를 옮길 수 있어요.';
+ if(waitingIntakePending)document.dispatchEvent(new Event('waiting-seated'));
+}
 function seatWaiting(){
- if(activeRoom)return;seatAfterMove=false;receptionAfterIntake=false;waitingSeated=true;seated=true;equipmentPose=null;destination=null;pathQueue=[];pathRequest++;keys.clear();marker.visible=false;avatar.g.rotation.x=0;avatar.g.position.set(WAITING_SOFA.seat.x,WAITING_SOFA.seat.y,WAITING_SOFA.seat.z);avatar.g.rotation.y=Math.PI;sitPose(avatar,true);yaw=0;pitch=.15;initial=true;notifySeat();resize();status.textContent='대기실 소파에 앉았어요.';document.dispatchEvent(new Event('waiting-seated'));
+ if(activeRoom)return;
+ seatAfterMove=false;receptionAfterIntake=false;waitingSeated=true;seated=true;equipmentPose=null;
+ destination=null;pathQueue=[];pathRequest++;keys.clear();marker.visible=false;
+ const {x,y,z}=WAITING_SOFA.seat;
+ waitingSlideX=x-.7;
+ avatar.g.position.set(waitingSlideX,y,z);avatar.g.rotation.set(0,Math.PI,0);
+ sitPose(avatar,true);yaw=0;pitch=.15;initial=true;notifySeat();resize();
+ announceWaitingSeat();
+}
+function shiftWaitingSeat(key){
+ if(!waitingSeated)return false;
+ const direction=key==='ArrowLeft'||key==='a'?-1:key==='ArrowRight'||key==='d'?1:0;
+ if(!direction)return false;
+ waitingSlideX=THREE.MathUtils.clamp(waitingSlideX+direction*.82,waitingSofaLeft,waitingSofaRight);
+ return true;
 }
 function requestWaitingSeat(){
- if(waitingSeated){document.dispatchEvent(new Event('waiting-seated'));return}if(activeRoom)leave();const target=WAITING_SOFA.approach;if(Math.hypot(avatar.g.position.x-target.x,avatar.g.position.z-target.z)<.3){seatWaiting();return}moveTo(target.x,target.z);seatAfterMove=!!destination;if(seatAfterMove)status.textContent='대기실 소파 쪽으로 이동하고 있어요.';
+ if(waitingSeated){announceWaitingSeat();return}
+ if(activeRoom)leave();
+ if(seated)stand();
+ const target=WAITING_SOFA.approach;
+ if(Math.hypot(avatar.g.position.x-target.x,avatar.g.position.z-target.z)<.3){seatWaiting();return}
+ destination=null;pathQueue=[];pathRequest++;marker.visible=false;
+ if(!moveTo(target.x,target.z)){
+  const from=avatar.g.position.clone().setY(0);
+  const path=planConsultationWalk(from,new THREE.Vector3(target.x,0,target.z),false,CENTER_PLAN.bounds);
+  if(!path)return;
+  pathQueue=path.slice(1);
+  destination=pathQueue.shift()||null;
+  marker.position.set(target.x,.15,target.z);marker.visible=!!destination;
+ }
+ if(!destination){seatWaiting();return}
+ const route=[avatar.g.position.clone(),destination,...pathQueue];
+ pathQueue=route.filter((point,index)=>{
+  if(index===0)return false;
+  if(index===route.length-1)return true;
+  const incoming=point.clone().sub(route[index-1]).setY(0).normalize();
+  const outgoing=route[index+1].clone().sub(point).setY(0).normalize();
+  return incoming.dot(outgoing)<.9999;
+ });
+ destination=pathQueue.shift();
+ seatAfterMove=true;
+ status.textContent='대기실 소파 쪽으로 이동하고 있어요.';
 }
 document.addEventListener('waiting-seat-request',requestWaitingSeat);
 function beginReceptionAfterIntake(){
@@ -207,9 +254,11 @@ document.addEventListener('counsel-enter',e=>{const def=defs.find(d=>d.id===e.de
 document.querySelector('#sit').onclick=()=>{if(activeRoom){seated?stand():seat()}else if(waitingSeated)stand();else if(Math.hypot(avatar.g.position.x-WAITING_SOFA.approach.x,avatar.g.position.z-WAITING_SOFA.approach.z)<=WAITING_SOFA.nearbyRadius)requestWaitingSeat();else status.textContent='대기실 소파 가까이로 이동해 주세요.'};
 
 function isBlocked(x,z,r=.3){if(!activeRoom&&!onFloor(x,z))return true;return obstacles.some(b=>x>b.min.x-r&&x<b.max.x+r&&z>b.min.z-r&&z<b.max.z+r)}
-function planConsultationWalk(from,to,smooth=false){
- const step=.1,minX=-8.5,minZ=-6.5,width=171,height=131;
- const clear=(x,z)=>!isBlocked(x,z,.34);
+function planConsultationWalk(from,to,smooth=false,limits={minX:-8.5,maxX:8.5,minZ:-6.5,maxZ:6.5}){
+ const step=.1,{minX,maxX,minZ,maxZ}=limits;
+ const width=Math.round((maxX-minX)/step)+1,height=Math.round((maxZ-minZ)/step)+1;
+ const clearance=activeRoom?.id==='muscle'?.34:.3;
+ const clear=(x,z)=>!isBlocked(x,z,clearance);
  const point=(x,z)=>new THREE.Vector3(minX+x*step,0,minZ+z*step);
  const grid=Array.from({length:height},(_,z)=>Array.from({length:width},(_,x)=>Number(!clear(minX+x*step,minZ+z*step))));
  function connect(endpoint){
@@ -244,7 +293,7 @@ function planConsultationWalk(from,to,smooth=false){
  function crossesObstacle(a,b,box){
   let enter=0,exit=1;
   for(const axis of ['x','z']){
-   const delta=b[axis]-a[axis],low=box.min[axis]-.34,high=box.max[axis]+.34;
+   const delta=b[axis]-a[axis],low=box.min[axis]-clearance,high=box.max[axis]+clearance;
    if(Math.abs(delta)<1e-8){
     if(a[axis]<low||a[axis]>high)return false;
     continue;
@@ -284,14 +333,14 @@ if(seated)stand();const g=navGrid,cell=(x,z)=>[Math.round((x-g.minX)/g.step),Mat
 }
 let receptionArmed=true,receptionWasNear=false;
 function updateReception(dz){
- if(bpScene?.active)return;
+ if(bpScene?.active||seatAfterMove)return;
  const near=inReceptionFront(avatar.g.position.x,avatar.g.position.z,desk),entering=near&&!receptionWasNear;receptionWasNear=near;
  if(receptionAfterIntake)return;
  if(activeRoom||outsideReceptionArea(avatar.g.position.x,avatar.g.position.z,desk))receptionArmed=true;
  if(receptionArmed&&isReceptionApproach({x:avatar.g.position.x,z:avatar.g.position.z,moving,dz,entering,room:activeRoom?.id||'lobby',dialogOpen:!!document.querySelector('dialog[open]')},desk)){receptionArmed=false;document.dispatchEvent(new Event('reception-start'))}
 }
 document.addEventListener('reception-opened',()=>{receptionArmed=false;seatAfterMove=false;receptionAfterIntake=false;keys.clear();destination=null;pathQueue=[];pathRequest++;marker.visible=false;status.textContent='안내원이 인사를 건넸어요.'});
-document.addEventListener('reception-walk',e=>{if(activeRoom)leave();if(e.detail==='waiting-intake'){requestWaitingSeat()}else if(e.detail==='waiting'){moveTo(-7,5.5);status.textContent='대기실 쪽으로 이동합니다. 실제 상담지는 현장 안내에 따라 작성해 주세요.'}else if(e.detail==='bloodpressure'){moveTo(4.1,5.5);status.textContent='오른쪽 자동혈압계 쪽으로 이동합니다. 실제 측정은 현장 안내를 따라 주세요.'}});
+document.addEventListener('reception-walk',e=>{if(activeRoom)leave();if(e.detail==='waiting-intake'){waitingIntakePending=true;requestWaitingSeat()}else if(e.detail==='waiting'){requestWaitingSeat()}else if(e.detail==='bloodpressure'){moveTo(4.1,5.5);status.textContent='오른쪽 자동혈압계 쪽으로 이동합니다. 실제 측정은 현장 안내를 따라 주세요.'}});
 let drag=null;
 renderer.domElement.addEventListener('pointerdown',e=>{if(document.querySelector('dialog[open]'))return;renderer.domElement.focus({preventScroll:true});drag={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false};renderer.domElement.setPointerCapture(e.pointerId)});
 renderer.domElement.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.lastX,dy=e.clientY-drag.lastY;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){if(viewMode==='map'){angle-=dx*.006;resize()}else{yaw-=dx*.006;pitch=THREE.MathUtils.clamp(pitch+dy*.004,-.2,.55)}}drag.lastX=e.clientX;drag.lastY=e.clientY});
@@ -299,9 +348,9 @@ renderer.domElement.addEventListener('pointercancel',()=>drag=null);
 renderer.domElement.addEventListener('pointerup',e=>{const click=drag&&!drag.moved;drag=null;if(!click||document.querySelector('dialog[open]'))return;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(pointer,camera);const hits=ray.intersectObjects(activeRoom?roomClickable:clickable,true);if(hits.length){let o=hits[0].object;while(o&&!o.userData.action)o=o.parent;const a=o?.userData.action;const at=new THREE.Vector3();o?.getWorldPosition(at);const reachable=viewMode==='map'||activeRoom||avatar.g.position.distanceTo(at)<9;if(!reachable){status.textContent='해당 공간 가까이로 이동해 주세요.';return}if(a?.type==='waiting-seat')requestWaitingSeat();else if(a?.type==='facility')document.dispatchEvent(new CustomEvent('facility-open',{detail:a.def.id}));else if(a?.type==='enter')enter(a.def);else if(a?.type==='education-seat')walkToSeat({x:a.def.x,z:a.def.z,approach:a.def.approach});else if(a?.type==='education-talk'){document.dispatchEvent(new Event('education-greeting'))}else if(a?.type==='seat')seat();else if(a?.type==='talk'){seat();document.querySelector('#talk-staff').click()}}else{const p=new THREE.Vector3();if(ray.ray.intersectPlane(ground,p))moveTo(p.x,p.z)}});
 renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoom=THREE.MathUtils.clamp(zoom-e.deltaY*.001,.75,1.6);resize()},{passive:false});
 function ignoreKeys(e){return document.querySelector('dialog[open]')||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||(e.target.tagName==='BUTTON'&&e.key==='Enter')}
-window.addEventListener('keydown',e=>{if(ignoreKeys(e))return;if(e.key==='Escape'&&activeRoom){leave();return}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)){e.preventDefault();keys.add(e.key);destination=null;pathQueue=[];pathRequest++;seatAfterMove=false;receptionAfterIntake=false;pendingSeat=null;stand()}if(e.key==='Enter'&&activeRoom){seat();document.querySelector('#talk-staff').click()}});
+window.addEventListener('keydown',e=>{if(ignoreKeys(e))return;if(e.key==='Escape'&&activeRoom){leave();return}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)){e.preventDefault();if(shiftWaitingSeat(e.key))return;keys.add(e.key);destination=null;pathQueue=[];pathRequest++;seatAfterMove=false;receptionAfterIntake=false;pendingSeat=null;stand()}if(e.key==='Enter'&&activeRoom){seat();document.querySelector('#talk-staff').click()}});
 window.addEventListener('keyup',e=>keys.delete(e.key));window.addEventListener('blur',()=>keys.clear());document.addEventListener('visibilitychange',()=>{keys.clear();last=performance.now()});
-document.querySelectorAll('[data-dir]').forEach(b=>{const map={up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight'};b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(map[b.dataset.dir]);destination=null;pathQueue=[];pathRequest++;seatAfterMove=false;receptionAfterIntake=false;pendingSeat=null;stand()});const end=()=>keys.delete(map[b.dataset.dir]);b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end);b.addEventListener('lostpointercapture',end)});
+document.querySelectorAll('[data-dir]').forEach(b=>{const map={up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight'};b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);if(shiftWaitingSeat(map[b.dataset.dir]))return;keys.add(map[b.dataset.dir]);destination=null;pathQueue=[];pathRequest++;seatAfterMove=false;receptionAfterIntake=false;pendingSeat=null;stand()});const end=()=>keys.delete(map[b.dataset.dir]);b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end);b.addEventListener('lostpointercapture',end)});
 
 function applyEquipmentPose(type){
  const bed=type==='ceragem';equipmentPose=type;seated=true;avatar.g.position.set(5,bed?.65:.13,bed?-1.7:2);avatar.g.rotation.y=0;avatar.g.rotation.x=bed?-Math.PI/2:0;sitPose(avatar,!bed);notifySeat();status.textContent=(bed?'세라젬':'안마기')+'에 사람처럼 접근해 자세를 취했습니다. 실제 기기는 작동하지 않습니다.';
@@ -340,5 +389,5 @@ function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(
 rebuildNavigation();applyView();resize();
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
 let lastPresenceSent=0;
-function tick(now){requestAnimationFrame(tick);const dt=Math.min((now-last)/1000,.05);last=now;let dx=0,dz=0;moving=false;if(!document.querySelector('dialog[open]')){if(keys.size){const horizontal=Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a'));const vertical=Number(keys.has('ArrowDown')||keys.has('s'))-Number(keys.has('ArrowUp')||keys.has('w'));const v=new THREE.Vector3(horizontal,0,vertical).applyAxisAngle(new THREE.Vector3(0,1,0),viewMode==='map'?Math.PI/4+angle:yaw);dx=v.x;dz=v.z}else if(destination){dx=destination.x-avatar.g.position.x;dz=destination.z-avatar.g.position.z;if(Math.hypot(dx,dz)<.12){destination=pathQueue.shift()||null;if(!destination){marker.visible=false;if(pendingSeat){const target=pendingSeat;pendingSeat=null;seatAt(target.x,target.z,false,target.approach)}else if(seatAfterMove)seatWaiting();else if(receptionAfterIntake)beginReceptionAfterIntake()}dx=dz=0}}if(!seated&&Math.hypot(dx,dz)>.01){moving=true;const len=Math.hypot(dx,dz),step=Math.min(3.5*dt,len),size=activeRoom?roomSize(activeRoom):null,maxX=activeRoom?size.w/2-.55:18,minZ=activeRoom?-size.d/2+.55:bounds.minZ,maxZ=activeRoom?size.d/2-.55:bounds.maxZ;const nx=THREE.MathUtils.clamp(avatar.g.position.x+dx/len*step,-maxX,maxX),nz=THREE.MathUtils.clamp(avatar.g.position.z+dz/len*step,minZ,maxZ);if(!isBlocked(nx,avatar.g.position.z))avatar.g.position.x=nx;if(!isBlocked(avatar.g.position.x,nz))avatar.g.position.z=nz;avatar.g.rotation.y=Math.atan2(dx,dz)}}if(!seated){avatar.g.position.y=moving&&!reduced?Math.abs(Math.sin(now*.009))*.025:0;avatar.legs.forEach((p,i)=>{const stride=moving&&!reduced?Math.sin(now*.009+i*Math.PI):0;p.rotation.x=stride*.38;if(p.userData.knee)p.userData.knee.rotation.x=Math.max(0,-stride)*.32});avatar.arms.forEach((p,i)=>p.rotation.x=moving&&!reduced?-Math.sin(now*.009+i*Math.PI)*.25:0)}if(moving&&now>doorCooldown){if(activeRoom){if(avatar.g.position.z>roomSize(activeRoom).d/2-.45&&Math.abs(avatar.g.position.x-(layout[activeRoom.id]?.doorX||0))<1.05)leave()}else{for(const def of defs){const p=roomPos.get(def.id)?.portal;if(layout[def.id]&&p&&Math.hypot(avatar.g.position.x-p.x,avatar.g.position.z-p.z)<.8){enter(def);break}}}}waistScene?.update(now);heightScene?.update(now);bpScene?.update(now);glucoseScene?.update(now);cholesterolScene?.update(now);hba1cScene?.update(now);arterialScene?.update(now);updateReception(dz);if(viewMode!=='map')updateWalkCamera();camera.position.lerp(desiredCam,reduced?1:Math.min(1,dt*8));look.lerp(desiredLook,reduced?1:Math.min(1,dt*8));camera.lookAt(look);for(const tag of worldLabels){if(!tag.parent)continue;const position=new THREE.Vector3();tag.getWorldPosition(position);tag.visible=!(((waistScene?.active||heightScene?.active||bpScene?.active||glucoseScene?.active||cholesterolScene?.active||hba1cScene?.active||arterialScene?.active)&&tag.userData.hideDuringWaist)||(heightScene?.active&&tag.userData.hideDuringHeight)||(bpScene?.active&&tag.userData.hideDuringBP))&&(viewMode==='map'||(!tag.userData.mapOnly&&position.distanceTo(avatar.g.position)<15&&position.distanceTo(camera.position)>2));tag.scale.copy(tag.userData.labelScale).multiplyScalar(viewMode==='map'?1:.6)}for(const remote of remoteAvatars.values()){remote.g.visible=remoteVisible(remote.state);if(remote.g.visible)remote.g.position.lerp(remote.target,Math.min(1,dt*10))}if(now-lastPresenceSent>100){lastPresenceSent=now;document.dispatchEvent(new CustomEvent('presence-local-state',{detail:{x:avatar.g.position.x,z:avatar.g.position.z,rotation:avatar.g.rotation.y,seated,room:activeRoom?.id||'lobby',gender:avatarGender,color:`#${avatar.shirt.color.getHexString()}`}}))}renderer.render(scene,camera);document.body.dataset.worldReady='true';window.healthWorldState={x:avatar.g.position.x,z:avatar.g.position.z,seated,waitingSeated,receptionAfterIntake,room:activeRoom?.id||'lobby',cameraDistance:camera.position.distanceTo(look),cameraX:camera.position.x,cameraY:camera.position.y,cameraZ:camera.position.z,lookX:look.x,lookY:look.y,lookZ:look.z,fov:camera.fov,pathRemaining:pathQueue.length+(destination?1:0),yaw,viewMode,equipmentPose,gender:avatarGender,remoteCount:remoteAvatars.size,roomWidth:activeRoom?roomSize(activeRoom).w:null,roomDepth:activeRoom?roomSize(activeRoom).d:null,waist:waistScene?.snapshot()||null,height:heightScene?.snapshot()||null,bloodpressure:bpScene?.snapshot()||null,glucose:glucoseScene?.snapshot()||null,cholesterol:cholesterolScene?.snapshot()||null,hba1c:hba1cScene?.snapshot()||null,arterial:arterialScene?.snapshot()||null,cardioFlow,ready:true}}requestAnimationFrame(tick);status.textContent='입구 정면 접수데스크에서 산책을 시작해요.';
+function tick(now){requestAnimationFrame(tick);const dt=Math.min((now-last)/1000,.05);last=now;let dx=0,dz=0;moving=false;if(!document.querySelector('dialog[open]')){if(waitingSeated){const delta=waitingSlideX-avatar.g.position.x;avatar.g.position.x+=THREE.MathUtils.clamp(delta,-dt*2.8,dt*2.8)}if(keys.size){const horizontal=Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a'));const vertical=Number(keys.has('ArrowDown')||keys.has('s'))-Number(keys.has('ArrowUp')||keys.has('w'));const v=new THREE.Vector3(horizontal,0,vertical).applyAxisAngle(new THREE.Vector3(0,1,0),viewMode==='map'?Math.PI/4+angle:yaw);dx=v.x;dz=v.z}else if(destination){dx=destination.x-avatar.g.position.x;dz=destination.z-avatar.g.position.z;if(Math.hypot(dx,dz)<.12){destination=pathQueue.shift()||null;if(!destination){marker.visible=false;if(pendingSeat){const target=pendingSeat;pendingSeat=null;seatAt(target.x,target.z,false,target.approach)}else if(seatAfterMove)seatWaiting();else if(receptionAfterIntake)beginReceptionAfterIntake()}dx=dz=0}}if(!seated&&Math.hypot(dx,dz)>.01){moving=true;const len=Math.hypot(dx,dz),step=Math.min(3.5*dt,len),size=activeRoom?roomSize(activeRoom):null,maxX=activeRoom?size.w/2-.55:18,minZ=activeRoom?-size.d/2+.55:bounds.minZ,maxZ=activeRoom?size.d/2-.55:bounds.maxZ;const nx=THREE.MathUtils.clamp(avatar.g.position.x+dx/len*step,-maxX,maxX),nz=THREE.MathUtils.clamp(avatar.g.position.z+dz/len*step,minZ,maxZ);if(!isBlocked(nx,avatar.g.position.z))avatar.g.position.x=nx;if(!isBlocked(avatar.g.position.x,nz))avatar.g.position.z=nz;avatar.g.rotation.y=Math.atan2(dx,dz)}}if(!seated){avatar.g.position.y=moving&&!reduced?Math.abs(Math.sin(now*.009))*.025:0;avatar.legs.forEach((p,i)=>{const stride=moving&&!reduced?Math.sin(now*.009+i*Math.PI):0;p.rotation.x=stride*.38;if(p.userData.knee)p.userData.knee.rotation.x=Math.max(0,-stride)*.32});avatar.arms.forEach((p,i)=>p.rotation.x=moving&&!reduced?-Math.sin(now*.009+i*Math.PI)*.25:0)}if(moving&&now>doorCooldown){if(activeRoom){if(avatar.g.position.z>roomSize(activeRoom).d/2-.45&&Math.abs(avatar.g.position.x-(layout[activeRoom.id]?.doorX||0))<1.05)leave()}else{for(const def of defs){const p=roomPos.get(def.id)?.portal;if(layout[def.id]&&p&&Math.hypot(avatar.g.position.x-p.x,avatar.g.position.z-p.z)<.8){enter(def);break}}}}waistScene?.update(now);heightScene?.update(now);bpScene?.update(now);glucoseScene?.update(now);cholesterolScene?.update(now);hba1cScene?.update(now);arterialScene?.update(now);updateReception(dz);if(viewMode!=='map')updateWalkCamera();camera.position.lerp(desiredCam,reduced?1:Math.min(1,dt*8));look.lerp(desiredLook,reduced?1:Math.min(1,dt*8));camera.lookAt(look);for(const tag of worldLabels){if(!tag.parent)continue;const position=new THREE.Vector3();tag.getWorldPosition(position);tag.visible=!(((waistScene?.active||heightScene?.active||bpScene?.active||glucoseScene?.active||cholesterolScene?.active||hba1cScene?.active||arterialScene?.active)&&tag.userData.hideDuringWaist)||(heightScene?.active&&tag.userData.hideDuringHeight)||(bpScene?.active&&tag.userData.hideDuringBP))&&(viewMode==='map'||(!tag.userData.mapOnly&&position.distanceTo(avatar.g.position)<15&&position.distanceTo(camera.position)>2));tag.scale.copy(tag.userData.labelScale).multiplyScalar(viewMode==='map'?1:.6)}for(const remote of remoteAvatars.values()){remote.g.visible=remoteVisible(remote.state);if(remote.g.visible)remote.g.position.lerp(remote.target,Math.min(1,dt*10))}if(now-lastPresenceSent>100){lastPresenceSent=now;document.dispatchEvent(new CustomEvent('presence-local-state',{detail:{x:avatar.g.position.x,z:avatar.g.position.z,rotation:avatar.g.rotation.y,seated,room:activeRoom?.id||'lobby',gender:avatarGender,color:`#${avatar.shirt.color.getHexString()}`}}))}renderer.render(scene,camera);document.body.dataset.worldReady='true';window.healthWorldState={x:avatar.g.position.x,z:avatar.g.position.z,seated,waitingSeated,receptionAfterIntake,room:activeRoom?.id||'lobby',cameraDistance:camera.position.distanceTo(look),cameraX:camera.position.x,cameraY:camera.position.y,cameraZ:camera.position.z,lookX:look.x,lookY:look.y,lookZ:look.z,fov:camera.fov,pathRemaining:pathQueue.length+(destination?1:0),yaw,viewMode,equipmentPose,gender:avatarGender,remoteCount:remoteAvatars.size,roomWidth:activeRoom?roomSize(activeRoom).w:null,roomDepth:activeRoom?roomSize(activeRoom).d:null,waist:waistScene?.snapshot()||null,height:heightScene?.snapshot()||null,bloodpressure:bpScene?.snapshot()||null,glucose:glucoseScene?.snapshot()||null,cholesterol:cholesterolScene?.snapshot()||null,hba1c:hba1cScene?.snapshot()||null,arterial:arterialScene?.snapshot()||null,cardioFlow,ready:true}}requestAnimationFrame(tick);status.textContent='입구 정면 접수데스크에서 산책을 시작해요.';
 }

@@ -25,7 +25,10 @@ function render(){
  const node=RECEPTION_FLOW[nodeId],root=document.querySelector('[data-reception]');root.dataset.node=nodeId;root.classList.toggle('reception-catalog',(node.choices?.length||0)>5);document.querySelector('#reception-current').textContent=node.text;
  for(const choice of node.choices||[]){
   const b=document.createElement('button');b.type='button';b.className='chat-choice';b.textContent=choice.label;
-  b.onclick=()=>{history.push({role:'visitor',text:choice.label});nodeId=choice.next;advance()};choices.append(b);
+  b.onclick=()=>{
+   if(nodeId==='start')document.dispatchEvent(new CustomEvent('reception-visit-choice',{detail:choice.next}));
+   history.push({role:'visitor',text:choice.label});nodeId=choice.next;advance();
+  };choices.append(b);
  }
  for(const action of node.actions||[]){
   const b=document.createElement('button');b.type='button';b.className='btn light';b.textContent=action.label;
