@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import {buildPsychologyFurniture,PSYCHOLOGY_VISITOR_SEAT} from './psychology-furniture.js?v=1';
+import {buildPsychologyFurniture,PSYCHOLOGY_VISITOR_SEAT} from './psychology-furniture.js?v=2';
 import {createWaistScene} from './cardio-scene.js?v=waist-1';
 import {createHeightScene} from './cardio-height-scene.js?v=height-1';
 import {createBPScene} from './cardio-bp-scene.js?v=bp-1';

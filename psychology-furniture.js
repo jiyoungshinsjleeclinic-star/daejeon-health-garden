@@ -8,6 +8,7 @@ export const PSYCHOLOGY_VISITOR_SEAT={
 const otherSeats=[
  {x:-1.7,z:-.87,approach:{x:-3.05,z:-.87,facing:Math.PI/2}},
  {x:1.72,z:.36,approach:{x:3.1,z:.36,facing:-Math.PI/2}},
+ {x:1.72,z:-.98,approach:{x:3.1,z:-.98,facing:-Math.PI/2}},
 ];
 
 export function buildPsychologyFurniture(parent,mats){
