@@ -10,7 +10,7 @@ import {createMuscleInBodyScene} from './muscle-inbody-scene.js?v=inbody-4';
 import {createPostureScene} from './posture-scene.js?v=posture-3';
 import {createEducationScreenMedia} from './education-screen.js?v=education-screen-1';
 import {isReceptionApproach,outsideReceptionArea,inReceptionFront} from './reception-flow.js?v=return-1';
-import {makeDevice} from './center-models.js?v=inbody-flow-1';
+import {makeDevice} from './center-models.js?v=posture-mat-1';
 import {roundedGeometry,makeMaterials,makePerson,makeChair,makeTable,makePlant,makeChristmasTree} from './center-visuals.js?v=realism-3';
 import {CENTER_PLAN,planPortal,CARDIO_EQUIPMENT,WAITING_SOFA,RECEPTION_RETURN_POINT} from './center-plan.js?v=return-1';
 const host=document.querySelector('#world'),status=document.querySelector('#world-status');
