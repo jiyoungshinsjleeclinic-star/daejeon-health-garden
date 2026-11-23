@@ -7,7 +7,7 @@ import {createCholesterolScene} from './cardio-cholesterol-scene.js?v=cholestero
 import {createHbA1cScene} from './cardio-hba1c-scene.js?v=hba1c-1';
 import {createArterialScene} from './cardio-arterial-scene.js?v=arterial-3';
 import {createMuscleInBodyScene} from './muscle-inbody-scene.js?v=walk-1';
-import {createPostureScene} from './posture-scene.js?v=scan-light-1';
+import {createPostureScene} from './posture-scene.js?v=smooth-walk-1';
 import {createEducationScreenMedia} from './education-screen.js?v=education-screen-1';
 import {isReceptionApproach,outsideReceptionArea,inReceptionFront} from './reception-flow.js?v=return-1';
 import {makeDevice} from './center-models.js?v=posture-mat-2';
@@ -207,7 +207,7 @@ document.addEventListener('counsel-enter',e=>{const def=defs.find(d=>d.id===e.de
 document.querySelector('#sit').onclick=()=>{if(activeRoom){seated?stand():seat()}else if(waitingSeated)stand();else if(Math.hypot(avatar.g.position.x-WAITING_SOFA.approach.x,avatar.g.position.z-WAITING_SOFA.approach.z)<=WAITING_SOFA.nearbyRadius)requestWaitingSeat();else status.textContent='대기실 소파 가까이로 이동해 주세요.'};
 
 function isBlocked(x,z,r=.3){if(!activeRoom&&!onFloor(x,z))return true;return obstacles.some(b=>x>b.min.x-r&&x<b.max.x+r&&z>b.min.z-r&&z<b.max.z+r)}
-function planConsultationWalk(from,to){
+function planConsultationWalk(from,to,smooth=false){
  const step=.1,minX=-8.5,minZ=-6.5,width=171,height=131;
  const clear=(x,z)=>!isBlocked(x,z,.34);
  const point=(x,z)=>new THREE.Vector3(minX+x*step,0,minZ+z*step);
@@ -237,7 +237,33 @@ function planConsultationWalk(from,to){
   }).map(({x,y})=>point(x,y)),to];
  });
  finder.calculate();
- return path?.filter((p,i)=>i===0||p.distanceToSquared(path[i-1])>1e-8)??null;
+ if(!path)return null;
+ path=path.filter((p,i)=>i===0||p.distanceToSquared(path[i-1])>1e-8);
+ if(!smooth)return path;
+ // Shorten the grid's right-angle turns only when the entire shortcut clears the furniture.
+ function crossesObstacle(a,b,box){
+  let enter=0,exit=1;
+  for(const axis of ['x','z']){
+   const delta=b[axis]-a[axis],low=box.min[axis]-.34,high=box.max[axis]+.34;
+   if(Math.abs(delta)<1e-8){
+    if(a[axis]<low||a[axis]>high)return false;
+    continue;
+   }
+   const first=(low-a[axis])/delta,last=(high-a[axis])/delta;
+   enter=Math.max(enter,Math.min(first,last));
+   exit=Math.min(exit,Math.max(first,last));
+   if(enter>exit)return false;
+  }
+  return true;
+ }
+ const shortened=[path[0]];
+ for(let start=0;start<path.length-1;){
+  let end=path.length-1;
+  while(end>start+1&&obstacles.some(box=>crossesObstacle(path[start],path[end],box)))end--;
+  shortened.push(path[end]);
+  start=end;
+ }
+ return shortened;
 }
 function rebuildNavigation(){
 renderer.shadowMap.needsUpdate=true;
