@@ -29,9 +29,11 @@ function label(text,x,y,z,color='#305d4e',w=3.5){const canvas=document.createEle
 function receptionBrandSign(){
  const canvas=document.createElement('canvas');canvas.width=1600;canvas.height=260;const c=canvas.getContext('2d');
  c.clearRect(0,0,canvas.width,canvas.height);
- const ring=c.createLinearGradient(64,38,255,218);ring.addColorStop(0,'#1598c8');ring.addColorStop(.46,'#2479ae');ring.addColorStop(.5,'#6cab3f');ring.addColorStop(1,'#8abf35');
- c.strokeStyle=ring;c.lineWidth=42;c.beginPath();c.arc(154,130,76,.12,Math.PI*1.84);c.stroke();
- c.fillStyle='#126b9d';c.beginPath();c.arc(194,47,17,0,Math.PI*2);c.fill();
+ c.lineWidth=42;c.lineCap='round';
+ c.strokeStyle='#69ad39';c.beginPath();c.arc(154,130,76,-.34,Math.PI*.9);c.stroke();
+ c.strokeStyle='#1788bb';c.beginPath();c.arc(154,130,76,Math.PI*.9,Math.PI*1.87);c.stroke();
+ c.fillStyle='#65aa3d';c.beginPath();c.arc(205,91,14,0,Math.PI*2);c.fill();
+ c.fillStyle='#1689bc';c.beginPath();c.arc(194,43,15,0,Math.PI*2);c.fill();
  c.fillStyle='#225f94';c.textBaseline='middle';c.font='700 72px sans-serif';c.fillText('대전근로자',290,134);
  const firstWidth=c.measureText('대전근로자').width;c.fillStyle='#eb7734';c.fillText('건강',290+firstWidth,134);
  const secondWidth=c.measureText('건강').width;c.fillStyle='#225f94';c.fillText('센터',290+firstWidth+secondWidth,134);
