@@ -116,6 +116,13 @@ export function makePerson(color,parent,mats,options={}){
   softBox(elbow,mats.white,.14,.045,.15,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.068,.092,.054);const thumb=limb(elbow,mats.skin,.018,.105,x<0?-.065:.065,-.31,.065);thumb.rotation.z=x<0?-.65:.65;
   const finger=new THREE.Group();elbow.add(finger);finger.visible=false;limb(finger,mats.skin,.017,.18,.02,-.415,0);arm.userData.indexFinger=finger;arms.push(arm);
  }
+ const upperBody=new THREE.Group();
+ upperBody.position.y=.93;
+ for(const part of [...g.children]){
+  part.position.y-=upperBody.position.y;
+  upperBody.add(part);
+ }
+ g.add(upperBody);
  for(const x of [-.14,.14]){
   const leg=new THREE.Group();leg.position.set(x,.91,0);g.add(leg);limb(leg,trousers,.108,.44,0,-.2,0);
   const knee=new THREE.Group();knee.position.y=-.41;leg.add(knee);limb(knee,trousers,.097,.39,0,-.17,0);
@@ -140,7 +147,7 @@ export function makePerson(color,parent,mats,options={}){
   onyuHair.visible=onyuFace.visible=onyuFront.visible=female;
   sleeves.forEach(sleeve=>sleeve.visible=female);
  };setGender(options.gender);
- return {g,shirt,legs,arms,shoes,feet,setGender,get gender(){return gender}};
+ return {g,upperBody,shirt,legs,arms,shoes,feet,setGender,get gender(){return gender}};
 }
 
 export function makeChristmasTree(x,z,scale,parent,mats){
