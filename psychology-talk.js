@@ -1,3 +1,4 @@
+import {aromaOils,aromaColors} from './aroma-scene.js?v=1';
 import {speak,hideSpeech} from './center-speech.js?v=speech-7';
 
 const dialog=document.querySelector('#dialog');
@@ -10,29 +11,79 @@ panel.append(progress);
 const progressText=progress.querySelector('p');
 const bar=progress.querySelector('progress');
 progress.querySelector('button').onclick=()=>document.dispatchEvent(new Event('omnifit-cancel'));
-let inRoom=false,seated=false,pending=false,active=false,remaining=null;
+let inRoom=false,seated=false,pending=null,active=false,remaining=null;
+let aromaStage='',aromaTimer=0;
+const aromaControls=document.createElement('section');
+aromaControls.className='omnifit-progress';
+aromaControls.hidden=true;
+aromaControls.innerHTML='<button type="button" class="btn" data-aroma-sheet>용지 확대 보기</button> <button type="button" class="btn light" data-aroma-stop>체험 중지</button>';
+panel.append(aromaControls);
+aromaControls.querySelector('[data-aroma-sheet]').onclick=showAromaSheet;
+aromaControls.querySelector('[data-aroma-stop]').onclick=()=>document.dispatchEvent(new Event('aroma-cancel'));
+
+function startProgram(program){
+ dialog.close();
+ document.querySelector('#world').scrollIntoView({block:'start'});
+ if(seated)document.dispatchEvent(new Event(program+'-start'));
+ else{pending=program;document.dispatchEvent(new Event('counsel-seat'))}
+}
 
 function openPrograms(){
- if(!inRoom||active)return;
+ if(!inRoom||active||aromaStage)return;
  window.show('심리상담 1실','<section data-psychology-programs><h2>어떤 프로그램을 체험하시겠어요?</h2><div class="reception-choices"><button type="button" class="chat-choice" data-fit>스트레스검사(옴니핏)</button><button type="button" class="chat-choice" data-aroma>아로마오일</button></div><button type="button" class="text-btn" data-general>상담 이용 안내</button></section>');
- dialog.querySelector('[data-fit]').onclick=()=>{
-  dialog.close();
-  document.querySelector('#world').scrollIntoView({block:'start'});
-  if(seated)document.dispatchEvent(new Event('omnifit-start'));
-  else{pending=true;document.dispatchEvent(new Event('counsel-seat'))}
- };
- dialog.querySelector('[data-aroma]').onclick=openAroma;
+ dialog.querySelector('[data-fit]').onclick=()=>startProgram('omnifit');
+ dialog.querySelector('[data-aroma]').onclick=()=>startProgram('aroma');
  dialog.querySelector('[data-general]').onclick=()=>{dialog.close();document.dispatchEvent(new Event('psychology-general'))};
 }
 
-function openAroma(){
- window.show('아로마오일','<section data-psychology-aroma><h2>향을 골라보세요</h2><div class="reception-choices"><button type="button" class="chat-choice" data-oil="lavender">라벤더</button><button type="button" class="chat-choice" data-oil="orange">스위트오렌지</button><button type="button" class="chat-choice" data-oil="mint">페퍼민트</button></div><p data-oil-info role="status"></p><button type="button" class="btn light" data-programs>프로그램 선택으로</button></section>');
- const descriptions={lavender:'라벤더는 부드러운 꽃향이 납니다.',orange:'스위트오렌지는 달콤하고 상큼한 감귤 향이 납니다.',mint:'페퍼민트는 시원하고 상쾌한 허브 향이 납니다.'};
- dialog.querySelectorAll('[data-oil]').forEach(button=>{button.onclick=()=>{
-  dialog.querySelector('[data-oil-info]').textContent=descriptions[button.dataset.oil]+' 실제 시향은 센터에서 안내받으실 수 있어요.';
- }});
- dialog.querySelector('[data-programs]').onclick=openPrograms;
+function showAromaSheet(){
+ if(aromaStage!=='intro')return;
+ clearTimeout(aromaTimer);
+ aromaStage='sheet';
+ const steps=aromaOils.map((oils,row)=>{
+  const headers=oils.map((_,i)=>'<th scope="col">'+(i+1)+'위</th>').join('');
+  return '<div class="aroma-step"><strong>Step '+(row+1)+'</strong><p>'+(row?'아래 6개':'위 4개')+'의 감정오일의 향기를 맡고<br><span>좋은/편안한</span> 순서대로 배열해 보세요.</p><table aria-label="'+(row+1)+'단계 향 순위"><thead><tr>'+headers+'</tr></thead><tbody><tr>'+oils.map(()=>'<td></td>').join('')+'</tr></tbody></table></div>';
+ }).join('');
+ const bottles=aromaOils.map((oils,row)=>'<ul>'+oils.map((name,i)=>'<li><i aria-hidden="true" style="--oil-label:'+aromaColors[(row?4:0)+i]+'"></i>'+name+'</li>').join('')+'</ul>').join('');
+ dialog.classList.add('aroma-sheet-dialog');
+ window.show('아로마오일 · 기록지','<section class="aroma-sheet"><section><h2>감정오일 진단 방법</h2>'+steps+'</section><section class="aroma-oils" aria-label="감정오일">'+bottles+'<p>비슷하게 좋거나 싫어도 <strong>“꼭”</strong> 순서를 정해주세요!</p></section></section><button type="button" class="btn" data-aroma-write>체크 동작 보기</button>');
+ dialog.querySelector('[data-aroma-write]').onclick=writeAromaSheet;
+ aromaTimer=setTimeout(writeAromaSheet,7500);
 }
+
+function writeAromaSheet(){
+ if(aromaStage!=='sheet')return;
+ clearTimeout(aromaTimer);
+ aromaStage='writing';
+ dialog.close();
+ aromaControls.querySelector('[data-aroma-sheet]').hidden=true;
+ document.dispatchEvent(new Event('aroma-write'));
+}
+
+function resetAroma(){
+ clearTimeout(aromaTimer);
+ const wasActive=Boolean(aromaStage);
+ aromaStage='';
+ aromaControls.hidden=true;
+ if(dialog.open&&dialog.classList.contains('aroma-sheet-dialog'))dialog.close();
+ dialog.classList.remove('aroma-sheet-dialog');
+ if(wasActive){talk.disabled=!seated;hideSpeech()}
+}
+
+document.addEventListener('aroma-ready',()=>{
+ aromaStage='intro';
+ aromaControls.hidden=false;
+ aromaControls.querySelector('[data-aroma-sheet]').hidden=false;
+ talk.disabled=true;
+ document.querySelector('#world').scrollIntoView({block:'start'});
+ speak("감정오일은 ‘나의 스트레스 내면 상태’, ‘스트레스 대처를 위한 방향성’을 나누게 되는 시간입니다. 향을 맡아보시고 편안하게 느껴지는 순서대로 작성해주세요! 같은 향이라도 어떤 분에게는 가장 편안한 향이 될 수 있고, 어떤 분에게는 가장 좋지 않게 느껴지는 향이 될 수가 있습니다. 가장 편안하게 느끼시는 총 4가지의 향의 오일을 가지고, ‘나만의 감정오일’을 만들어드릴게요. 편안히 시작해주시면 됩니다.",{placement:'screen-clear'});
+ aromaTimer=setTimeout(showAromaSheet,24000);
+});
+document.addEventListener('aroma-cancel',resetAroma);
+document.addEventListener('aroma-complete',()=>{
+ resetAroma();
+ speak('가상체험에서는 실제 체크한 아로마오일을 전부 확인할 수 없으므로 상담사와 스케줄 예약 후 실제로 센터를 방문해서 나만의 아로마오일을 만들어보세요.',{placement:'screen-clear'});
+});
 
 const instructions={
  intro:'옴니핏은 뇌파와 맥파를 측정하는 기기입니다. 이 신호에서 얻은 지표로 정신적·신체적 스트레스 상태, 집중력, 두뇌 부하도, 스트레스 대처 능력 등을 살펴봅니다. 수면 부족, 운동량, 복용 중인 약과 당일 컨디션이 결과에 영향을 줄 수 있습니다.',
@@ -84,7 +135,8 @@ function showReport(kind){
 }
 
 document.addEventListener('counsel-room-change',event=>{
- inRoom=event.detail.room?.id==='stress';seated=pending=active=false;
+ resetAroma();
+ inRoom=event.detail.room?.id==='stress';seated=active=false;pending=null;
  progress.hidden=true;
  dialog.classList.remove('omnifit-report-dialog');
  if(inRoom)queueMicrotask(openPrograms);
@@ -93,7 +145,7 @@ document.addEventListener('psychology-programs',openPrograms);
 document.addEventListener('counsel-seat-change',event=>{
  if(!inRoom)return;
  seated=event.detail.seated;
- if(pending&&seated){pending=false;document.dispatchEvent(new Event('omnifit-start'))}
+ if(pending&&seated){const program=pending;pending=null;document.dispatchEvent(new Event(program+'-start'))}
 });
 document.addEventListener('omnifit-stage',event=>{
  if(!inRoom)return;
@@ -114,4 +166,8 @@ document.addEventListener('omnifit-stage',event=>{
  progressText.textContent=stage==='measure'?'남은 시간 60초':stage==='return'?'결과 화면을 준비하고 있어요.':'측정 준비 및 안내';
  if(instructions[stage])speak(instructions[stage],{placement:'screen-clear'});
 });
-dialog.addEventListener('close',()=>{if(!dialog.open)dialog.classList.remove('omnifit-report-dialog')});
+dialog.addEventListener('close',()=>{
+ if(dialog.open)return;
+ dialog.classList.remove('omnifit-report-dialog','aroma-sheet-dialog');
+ if(aromaStage==='sheet')document.dispatchEvent(new Event('aroma-cancel'));
+});

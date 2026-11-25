@@ -1,5 +1,6 @@
 .omnifit-progress { margin-top:16px; padding-top:12px; border-top:1px solid #cbded5; }
 .omnifit-progress[hidden] { display:none; }
+.omnifit-progress button[hidden] { display:none; }
 .omnifit-progress p { margin:6px 0; }
 .omnifit-progress progress { display:block; width:100%; margin:8px 0 12px; accent-color:#327164; }
 .omnifit-progress progress[hidden] { display:none; }
@@ -14,4 +15,24 @@
 [data-oil-info]:empty { display:none; }
 @media (max-width:690px) {
  .omnifit-report-grid { grid-template-columns:minmax(0,1fr); gap:14px; }
+}
+#dialog.aroma-sheet-dialog { width:min(1040px,calc(100vw - 24px)); max-width:calc(100vw - 24px); }
+.aroma-sheet { display:grid; grid-template-columns:1fr 1fr; gap:30px; color:#242424; background:#fff; padding:clamp(12px,3vw,32px); margin-bottom:14px; }
+.aroma-sheet h2 { margin:0 0 28px; font-size:clamp(1.4rem,3.8vw,2.65rem); white-space:nowrap; font-weight:500; }
+.aroma-step + .aroma-step { margin-top:20px; }
+.aroma-step p { margin:0 0 20px; text-align:center; font-weight:650; line-height:1.35; }
+.aroma-step span { color:#a45133; }
+.aroma-step table { width:100%; table-layout:fixed; text-align:center; border-collapse:collapse; }
+.aroma-step th,.aroma-step td { border:1px solid #434343; height:30px; }
+.aroma-step td { height:44px; }
+.aroma-oils { align-self:center; text-align:center; }
+.aroma-oils ul { display:flex; justify-content:center; gap:6px; list-style:none; padding:0; margin:0 0 23px; }
+.aroma-oils li { width:clamp(34px,5vw,58px); display:grid; justify-items:center; align-content:start; font-size:clamp(.52rem,1.15vw,.75rem); font-weight:650; line-height:1.25; }
+.aroma-oils i { display:block; width:22px; height:36px; position:relative; background:linear-gradient(90deg,#2d190e,#7d532b,#28180f); border-radius:5px 5px 3px 3px; margin:14px 0 4px; box-shadow:0 2px 3px #0004; }
+.aroma-oils i::before { content:''; position:absolute; top:-12px; left:3px; width:16px; height:13px; background:repeating-linear-gradient(90deg,#231f20 0 2px,#423f3f 2px 3px); border-radius:3px 3px 0 0; }
+.aroma-oils i::after { content:''; position:absolute; inset:6px 4px; border-radius:2px; background:var(--oil-label); }
+.aroma-oils p { font-weight:650; }
+.aroma-oils p strong { color:#ae262c; }
+@media (max-width:620px) {
+ .aroma-sheet { grid-template-columns:1fr; gap:20px; }
 }
