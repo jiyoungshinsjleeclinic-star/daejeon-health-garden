@@ -61,6 +61,48 @@ function shapedPanel(parent,material,profile,depth,x,y,z){
  return mesh(parent,geometry,material,x,y,z);
 }
 
+// A shared crown vertex and wrapped rings keep the bob continuous at the back.
+function bobGeometry(){
+ const segments=80,layers=28;
+ const positions=[-.026,2.205,-.009],colors=[1,1,1],indices=[];
+ for(let column=0;column<segments;column++){
+  const angle=2*Math.PI*column/segments;
+  const front=Math.cos(angle),side=Math.sin(angle);
+  const fringe=THREE.MathUtils.smoothstep(front,.38,.86);
+  const part=Math.exp(-((side-.42)**2)/.045);
+  const hem=1.49+.055*(1+front)/2+fringe*(.442+.041*part)+.010*Math.sin(5*angle);
+  // The inner lip curls toward the neck, giving the lower edge some thickness.
+  const section=new THREE.CatmullRomCurve3([
+   new THREE.Vector3(0,2.205,-.009),
+   new THREE.Vector3(.135,2.176,-.006),
+   new THREE.Vector3(.215,2.10,-.005),
+   new THREE.Vector3(.248,2.023+.038*fringe,-.006),
+   new THREE.Vector3(.256,THREE.MathUtils.lerp(1.99,hem,.48)+.025*fringe,-.012),
+   new THREE.Vector3(.246,hem+.032,-.020),
+   new THREE.Vector3(.229,hem,-.019),
+   new THREE.Vector3(.201,hem+.018,-.018)
+  ]);
+  for(let row=1;row<=layers;row++){
+   const t=row/layers,point=section.getPoint(t);
+   const flow=angle+.26*(1-t);
+   const strand=Math.cos(25*flow+1.6*Math.sin(3*flow));
+   const earCover=.032*side**4*Math.exp(-((point.y-1.85)**2)/.009);
+   const radius=point.x+earCover+.0028*t*strand;
+   positions.push(radius*side-.026*(1-t)**3,point.y,point.z+radius*front*1.025);
+   const tint=.94+.045*strand*t;
+   colors.push(tint,tint,tint);
+   const a=1+column*layers+row-1,b=1+((column+1)%segments)*layers+row-1;
+   if(row===1)indices.push(0,a,b);
+   else indices.push(a-1,a,b,b,b-1,a-1);
+  }
+ }
+ const geo=new THREE.BufferGeometry();
+ geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+ geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+ geo.setIndex(indices);geo.computeVertexNormals();
+ return geo;
+}
+
 export function makePerson(color,parent,mats,options={}){
  const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshPhysicalMaterial({color,roughness:.93,map:mats.fabric.map,bumpMap:mats.fabric.map,bumpScale:.0014,sheen:.12,sheenColor:'#ffffff'});
  const trousers=new THREE.MeshPhysicalMaterial({color:'#424c51',roughness:.94,map:mats.fabric.map,bumpMap:mats.fabric.map,bumpScale:.0012,sheen:.08,sheenColor:'#aab4b6'}),hair=new THREE.MeshPhysicalMaterial({color:'#392f2b',roughness:.59,clearcoat:.045,clearcoatRoughness:.7});
@@ -84,17 +126,9 @@ export function makePerson(color,parent,mats,options={}){
  const maleHair=new THREE.Group();head.add(maleHair);
  const cap=mesh(maleHair,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.58),hair,0,1.99,.005);cap.scale.set(.255,.225,.247);
  for(const x of [-.13,0,.13]){const bang=ellipsoid(maleHair,hair,x,1.982,.19,.09,.045,.04);bang.rotation.z=x<0?-.24:x>0?.24:0}
- // [온유] 여성 머리: 옆가르마 앞머리 + 어깨까지 오는 웨이브 단발
- const onyuHair=new THREE.Group();head.add(onyuHair);
- const crown=mesh(onyuHair,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.56),hair,0,1.99,0);crown.scale.set(.245,.235,.248);crown.rotation.x=-.25;
- const fringe=ellipsoid(onyuHair,hair,-.03,2.012,.205,.17,.055,.048);fringe.rotation.z=.22;
- ellipsoid(onyuHair,hair,0,1.8,-.12,.25,.32,.14);
- ellipsoid(onyuHair,hair,0,1.6,-.12,.215,.16,.1);
- for(const s of [-1,1]){
-  ellipsoid(onyuHair,hair,s*.215,1.785,-.045,.065,.255,.145);
-  ellipsoid(onyuHair,hair,s*.225,1.675,-.055,.053,.155,.115);
-  const tip=ellipsoid(onyuHair,hair,s*.232,1.57,-.018,.040,.093,.066);tip.rotation.z=-s*.5;
- }
+ const bobMaterial=hair.clone();
+ bobMaterial.vertexColors=true;
+ const onyuHair=mesh(head,bobGeometry(),bobMaterial,0,0,0);
  // [온유] 눈매: 윗 속눈썹 선 (머리 곡면을 따라 살짝 돌려 배치)
  const onyuFace=new THREE.Group();head.add(onyuFace);
  for(const s of [-1,1]){const lash=limb(onyuFace,eyes,.0038,.105,s*.085,1.916,.2255);lash.rotation.set(0,s*.3,Math.PI/2)}
