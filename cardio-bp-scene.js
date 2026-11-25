@@ -1,3 +1,4 @@
+import {setFingerExtended} from './finger-pose.js';
 import * as THREE from './vendor/three.module.js';
 import {CENTER_PLAN,planPortal} from './center-plan.js?v=return-1';
 
@@ -9,7 +10,7 @@ export function createBPScene(visitor,device,pose,onStage,onSpace,onComplete){
  const roomRoute=[new THREE.Vector3(0,0,3.3),new THREE.Vector3(doorX,0,3.3),new THREE.Vector3(doorX,0,4.25)];
  const lobbyRoute=[outside,new THREE.Vector3(3.9,0,4.9),new THREE.Vector3(4.1,0,6.1),approach];
  let active=false,stage='idle',space='cardio',startTime=0,lastPressure=-1;
- function resetPose(){pose(visitor,false);visitor.g.rotation.x=0;visitor.arms.forEach(a=>{a.rotation.set(0,0,0);a.position.z=0;if(a.userData.elbow)a.userData.elbow.rotation.x=0;if(a.userData.indexFinger)a.userData.indexFinger.visible=false})}
+ function resetPose(){pose(visitor,false);visitor.g.rotation.x=0;visitor.arms.forEach(a=>{a.rotation.set(0,0,0);a.position.z=0;if(a.userData.elbow)a.userData.elbow.rotation.x=0;if(a.userData.indexFinger)setFingerExtended(a.userData.indexFinger,false)})}
  function point(x,y,z){return device.position.clone().add(new THREE.Vector3(x,y*device.scale.y,z))}
  function transition(next){if(stage===next)return;stage=next;const desiredSpace=['lobby-walk','bp-seat','rest','arm-in','press-start','inflating','result','arm-out','bp-stand','lobby-return'].includes(next)?'lobby':'cardio';if(space!==desiredSpace){space=desiredSpace;onSpace(space)}onStage(next)}
  function walk(points,f,reverse,t){
@@ -42,7 +43,7 @@ export function createBPScene(visitor,device,pose,onStage,onSpace,onComplete){
     const reach=next==='rest'?0:next==='arm-in'?s:next==='arm-out'?1-s:1;
     right.rotation.x=THREE.MathUtils.lerp(-.3,-Math.PI/2,reach);
     if(next==='press-start'){
-     const action=THREE.MathUtils.clamp((t-2.8)/3,0,1),reachLeft=Math.sin(Math.PI*Math.min(1,action/.85));left.rotation.x=THREE.MathUtils.lerp(-.3,.15,reachLeft);left.userData.elbow.rotation.x=-1.565*reachLeft;left.userData.indexFinger.visible=true;
+     const action=THREE.MathUtils.clamp((t-2.8)/3,0,1),reachLeft=Math.sin(Math.PI*Math.min(1,action/.85));left.rotation.x=THREE.MathUtils.lerp(-.3,.15,reachLeft);left.userData.elbow.rotation.x=-1.565*reachLeft;setFingerExtended(left.userData.indexFinger,true);
     }
     if(next==='inflating'){const pressure=Math.round(35+125*s);if(pressure!==lastPressure){lastPressure=pressure;display?.update({mode:'inflating',pressure})}}
     if(next==='result'&&display?.value.mode!=='result')display?.update({mode:'result',...BP_EXAMPLE});
@@ -55,6 +56,6 @@ export function createBPScene(visitor,device,pose,onStage,onSpace,onComplete){
    if(stage==='press-start'){const focus=point(-.15,1.4,.65),offset=new THREE.Vector3(-1.25,2.75,Math.max(1.4,.9/aspect)).multiplyScalar(aspect<1?1.2:1);return{focus,position:focus.clone().add(offset),fov:42}}
    const focus=visitor.g.position.clone().add(new THREE.Vector3(0,1.15,0));return{focus,position:focus.clone().add(new THREE.Vector3(-2,1.5,3.4)),fov:62};
   },
-  snapshot(){return{active,stage,space,rightArm:visitor.arms[0].rotation.x,leftElbow:visitor.arms[1].userData.elbow.rotation.x,leftIndex:visitor.arms[1].userData.indexFinger.visible,display:display?.value||null}}
+  snapshot(){return{active,stage,space,rightArm:visitor.arms[0].rotation.x,leftElbow:visitor.arms[1].userData.elbow.rotation.x,leftIndex:visitor.arms[1].userData.indexFinger.userData.extended,display:display?.value||null}}
  };
 }

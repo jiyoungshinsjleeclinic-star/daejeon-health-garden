@@ -1,3 +1,4 @@
+import {setFingerExtended} from './finger-pose.js';
 import * as THREE from './vendor/three.module.js';
 
 export const GLUCOSE_SEQUENCE=[['invitation',5],['finger-forward',4],['preparing',5],['measuring',3],['result',8],['finishing',4],['staff-back',5]];
@@ -5,7 +6,7 @@ export function createGlucoseScene(visitor,employee,device,pose,onStage,onComple
  const home=device.position.clone(),rotation=device.quaternion.clone(),display=device.userData.glucoseDisplay;
  const staffRoute=[new THREE.Vector3(0,0,-2),new THREE.Vector3(-2.25,0,-2),new THREE.Vector3(-2.25,0,1.33),new THREE.Vector3(-1.42,0,1.33)];
  let active=false,stage='idle',startTime=0;const heldPosition=home.clone();
- function resetArms(person){person.arms.forEach(a=>{a.rotation.set(0,0,0);a.position.z=0;if(a.userData.elbow)a.userData.elbow.rotation.x=0;if(a.userData.indexFinger)a.userData.indexFinger.visible=false})}
+ function resetArms(person){person.arms.forEach(a=>{a.rotation.set(0,0,0);a.position.z=0;if(a.userData.elbow)a.userData.elbow.rotation.x=0;if(a.userData.indexFinger)setFingerExtended(a.userData.indexFinger,false)})}
  function restoreStaff(){employee.g.position.set(0,.13,-2);employee.g.rotation.set(0,0,0);resetArms(employee);pose(employee,true)}
  function restoreMeter(){device.position.copy(home);device.quaternion.copy(rotation)}
  function transition(next){if(stage!==next){stage=next;onStage(next)}}
@@ -14,7 +15,7 @@ export function createGlucoseScene(visitor,employee,device,pose,onStage,onComple
   for(let i=0;i<lengths.length;i++){if(distance<=lengths[i]||i===lengths.length-1){employee.g.position.lerpVectors(staffRoute[i],staffRoute[i+1],Math.min(1,distance/lengths[i]));const d=staffRoute[i+1].clone().sub(staffRoute[i]).multiplyScalar(back?-1:1);employee.g.rotation.y=Math.atan2(d.x,d.z);break}distance-=lengths[i]}
   employee.legs.forEach((l,i)=>{l.rotation.x=Math.sin(f*36+i*Math.PI)*.25});employee.arms.forEach((a,i)=>a.rotation.x=-Math.sin(f*36+i*Math.PI)*.18);
  }
- function finger(reach){const left=visitor.arms[1];left.rotation.x=THREE.MathUtils.lerp(-.3,-.65,reach);left.userData.elbow.rotation.x=-.95*reach;left.userData.indexFinger.visible=reach>.1}
+ function finger(reach){const left=visitor.arms[1];left.rotation.x=THREE.MathUtils.lerp(-.3,-.65,reach);left.userData.elbow.rotation.x=-.95*reach;setFingerExtended(left.userData.indexFinger,reach>.1)}
  function fingertip(){visitor.g.updateWorldMatrix(true,true);return visitor.arms[1].userData.elbow.localToWorld(new THREE.Vector3(.02,-.505,0))}
  function holdMeter(f=1){
   const point=fingertip(),target=point.clone().add(new THREE.Vector3(-.52,-.055,0));heldPosition.copy(target);device.position.lerpVectors(home,target,f);device.quaternion.slerpQuaternions(rotation,new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.PI/2),f);
@@ -50,6 +51,6 @@ export function createGlucoseScene(visitor,employee,device,pose,onStage,onComple
    }
    const focus=new THREE.Vector3(-.4,1.35,1.4);return{focus,position:focus.clone().add(new THREE.Vector3(-1.6,1.3,1.2).multiplyScalar(aspect<1?1.2:1)),fov:50};
   },
-  snapshot(){return{active,stage,leftIndex:visitor.arms[1].userData.indexFinger.visible,leftElbow:visitor.arms[1].userData.elbow.rotation.x,display:display?.value||null,meterX:device.position.x,meterY:device.position.y,meterZ:device.position.z}}
+  snapshot(){return{active,stage,leftIndex:visitor.arms[1].userData.indexFinger.userData.extended,leftElbow:visitor.arms[1].userData.elbow.rotation.x,display:display?.value||null,meterX:device.position.x,meterY:device.position.y,meterZ:device.position.z}}
  };
 }

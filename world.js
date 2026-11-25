@@ -1,20 +1,21 @@
+import {setFingerExtended} from './finger-pose.js';
 import * as THREE from './vendor/three.module.js';
 import {buildPsychologyFurniture,PSYCHOLOGY_VISITOR_SEAT} from './psychology-furniture.js?v=2';
-import {createAromaScene} from './aroma-scene.js?v=1';
+import {createAromaScene} from './aroma-scene.js?v=hands-1';
 import {createOmnifitScene} from './omnifit-scene.js?v=person-2';
 import {createWaistScene} from './cardio-scene.js?v=waist-1';
 import {createHeightScene} from './cardio-height-scene.js?v=height-1';
-import {createBPScene} from './cardio-bp-scene.js?v=bp-1';
-import {createGlucoseScene} from './cardio-glucose-scene.js?v=glucose-1';
-import {createCholesterolScene} from './cardio-cholesterol-scene.js?v=cholesterol-2';
-import {createHbA1cScene} from './cardio-hba1c-scene.js?v=hba1c-1';
-import {createArterialScene} from './cardio-arterial-scene.js?v=arterial-3';
+import {createBPScene} from './cardio-bp-scene.js?v=hands-1';
+import {createGlucoseScene} from './cardio-glucose-scene.js?v=hands-1';
+import {createCholesterolScene} from './cardio-cholesterol-scene.js?v=hands-1';
+import {createHbA1cScene} from './cardio-hba1c-scene.js?v=hands-1';
+import {createArterialScene} from './cardio-arterial-scene.js?v=hands-1';
 import {createMuscleInBodyScene} from './muscle-inbody-scene.js?v=arm-view-1';
 import {createPostureScene} from './posture-scene.js?v=smooth-walk-1';
 import {createEducationScreenMedia} from './education-screen.js?v=education-screen-1';
 import {isReceptionApproach,outsideReceptionArea,inReceptionFront} from './reception-flow.js?v=return-1';
 import {makeDevice} from './center-models.js?v=posture-mat-2';
-import {roundedGeometry,makeMaterials,makePerson,makeChair,makeTable,makePlant,makeChristmasTree} from './center-visuals.js?v=bob-2';
+import {roundedGeometry,makeMaterials,makePerson,makeChair,makeTable,makePlant,makeChristmasTree} from './center-visuals.js?v=hands-1';
 import {CENTER_PLAN,planPortal,CARDIO_EQUIPMENT,WAITING_SOFA,RECEPTION_RETURN_POINT} from './center-plan.js?v=return-1';
 const host=document.querySelector('#world'),status=document.querySelector('#world-status');
 try { init(); } catch(e) { status.textContent='3D 공간을 불러오지 못했어요. 아래 체험 메뉴는 그대로 이용할 수 있습니다.';host.classList.add('failed');console.error(e); }
@@ -67,7 +68,7 @@ box(28,.02,2.7,-3,.015,-2,'#d5ddda');
 const clickable=[];const roomClickable=[];let activeRoom=null,seated=false,waitingSeated=false,destination=null,seatAfterMove=false,receptionAfterIntake=false,pendingSeat=null,lastSeatApproach=null,waistScene=null,heightScene=null,bpScene=null,rightBP=null,glucoseScene=null,cholesterolScene=null,hba1cScene=null,arterialScene=null,muscleInbodyScene=null,postureScene=null,educationMedia=null,cardioFlow='standard',educationSeatPositions=[];const roomPos=new Map();
 function register(object,type,def=null,list=clickable){object.userData.action={type,def};list.push(object)}
 let omnifitScene=null,aromaScene=null;
-function sitPose(p,on){p.legs.forEach(l=>{l.rotation.x=on?-Math.PI/2:0;if(l.userData.knee)l.userData.knee.rotation.x=on?Math.PI/2:0});p.arms.forEach(l=>{l.rotation.x=on?-.3:0;if(l.userData.elbow)l.userData.elbow.rotation.x=0;if(l.userData.indexFinger)l.userData.indexFinger.visible=false})}
+function sitPose(p,on){p.legs.forEach(l=>{l.rotation.x=on?-Math.PI/2:0;if(l.userData.knee)l.userData.knee.rotation.x=on?Math.PI/2:0});p.arms.forEach(l=>{l.rotation.x=on?-.3:0;if(l.userData.elbow)l.userData.elbow.rotation.x=0;if(l.userData.indexFinger)setFingerExtended(l.userData.indexFinger,false)})}
 function addDevice(type,x,z,detailed=false,y=0){const o=makeDevice(type,x,z,{parent:buildRoot,box,cylinder,sphere,mat,mats});o.position.y=y;register(o,'facility',{id:type},detailed?roomClickable:clickable);return o}
 function deviceTag(name,type,x,z,detailed=false){const sign=label(name,x,2.65,z,'#305d4e',2.8);sign.material.toneMapped=false;sign.userData.hideDuringBP=type==='bloodpressure';sign.userData.hideDuringHeight=type==='heightweight';register(sign,'facility',{id:type},detailed?roomClickable:clickable)}
 function roomDecor(def,detailed){

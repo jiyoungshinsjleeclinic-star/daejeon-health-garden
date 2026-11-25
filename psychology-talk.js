@@ -1,4 +1,4 @@
-import {aromaOils,aromaColors} from './aroma-scene.js?v=1';
+import {aromaOils,aromaColors} from './aroma-scene.js?v=hands-1';
 import {speak,hideSpeech} from './center-speech.js?v=speech-7';
 
 const dialog=document.querySelector('#dialog');

@@ -92,7 +92,14 @@ export function createAromaScene(avatar,room,onComplete){
   lower.multiplyScalar(length).sub(upper).normalize().applyQuaternion(arm.quaternion.clone().invert());
   elbow.quaternion.setFromUnitVectors(down,lower);
  }
+ function curlWritingFingers(amount){
+  for(const [name,curl] of [['indexFinger',.72],['middleFinger',.9],['ringFinger',1.13],['littleFinger',1.22]]){
+   const digit=arm.userData[name];
+   digit.rotation.x=digit.userData.restRotation.x-curl*amount;
+  }
+ }
  function resetHand(){
+  curlWritingFingers(0);
   arm.quaternion.copy(armRest);elbow.quaternion.copy(elbowRest);
   torso.quaternion.copy(torsoRest);torso.position.copy(torsoPosition);
  }
@@ -132,6 +139,7 @@ export function createAromaScene(avatar,room,onComplete){
    torso.rotateX(.55*lean);
    torso.position.copy(torsoPosition);torso.position.z+=.17*lean;
    moveHand();
+   curlWritingFingers(pickup*(1-putdown));
    const relax=Math.max(1-THREE.MathUtils.smoothstep(elapsed,0,550),THREE.MathUtils.smoothstep(elapsed,4220,duration));
    arm.quaternion.slerp(armRest,relax);elbow.quaternion.slerp(elbowRest,relax);
    const next=Math.min(4,Math.floor(writing+.15));

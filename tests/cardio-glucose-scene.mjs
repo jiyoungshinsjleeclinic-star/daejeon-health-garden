@@ -1,3 +1,4 @@
+import {setFingerExtended} from '../finger-pose.js';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
 import {makePerson} from '../center-visuals.js';
@@ -6,7 +7,7 @@ const mats=Object.fromEntries(['white','wood','green','dark','blue','skin','meta
 const root=new THREE.Group(),visitor=makePerson('#cb8c99',root,mats),employee=makePerson('#eeeeee',root,mats),device=new THREE.Group();root.add(device);device.position.set(-.43,1.22,.04);const home=device.position.clone();
 const screen=new THREE.Group();screen.position.set(0,.157,-.0696);device.add(screen);device.userData.glucoseScreen=screen;
 const display={value:{mode:'idle',value:null,unit:'mg/dL',example:true},reset(){this.value={mode:'idle',value:null,unit:'mg/dL',example:true}},update(mode){this.value={mode,value:mode==='result'?92:null,unit:'mg/dL',example:true}}};device.userData.glucoseDisplay=display;
-function pose(p,on){p.legs.forEach(l=>{l.rotation.x=on?-Math.PI/2:0;l.userData.knee.rotation.x=on?Math.PI/2:0});p.arms.forEach(a=>{a.rotation.x=on?-.3:0;a.userData.elbow.rotation.x=0;a.userData.indexFinger.visible=false})}
+function pose(p,on){p.legs.forEach(l=>{l.rotation.x=on?-Math.PI/2:0;l.userData.knee.rotation.x=on?Math.PI/2:0});p.arms.forEach(a=>{a.rotation.x=on?-.3:0;a.userData.elbow.rotation.x=0;setFingerExtended(a.userData.indexFinger,false)})}
 let completed=0;const stages=[];const scene=createGlucoseScene(visitor,employee,device,pose,s=>stages.push(s),()=>{completed++;pose(visitor,true)});
 scene.start();const start=performance.now();let elapsed=0;
 for(const [stage,seconds]of GLUCOSE_SEQUENCE){

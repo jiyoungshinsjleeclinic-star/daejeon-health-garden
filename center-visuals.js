@@ -103,6 +103,28 @@ function bobGeometry(){
  return geo;
 }
 
+function makeHand(arm,elbow,skin,side){
+ ellipsoid(elbow,skin,0,-.285,.022,.064,.071,.033);
+ const thumb=limb(elbow,skin,.019,.093,side*.066,-.305,.045);
+ thumb.rotation.set(-.32,0,side*.63);
+ const fingers=[
+  ['indexFinger',.041,.089,.0155,.12],
+  ['middleFinger',.013,.098,.016,.035],
+  ['ringFinger',-.016,.091,.015,-.065],
+  ['littleFinger',-.043,.073,.013,-.19]
+ ];
+ for(const [name,x,length,radius,spread] of fingers){
+  const finger=new THREE.Group();elbow.add(finger);
+  finger.position.set(side*x,-.33+(name==='littleFinger'?.008:0),.019);
+  finger.rotation.set(-.12,0,side*spread);
+  limb(finger,skin,radius,length,0,-length/2,0);
+  arm.userData[name]=finger;
+  finger.userData.restRotation=finger.rotation.clone();
+  finger.userData.length=length;
+  finger.userData.extended=false;
+ }
+}
+
 export function makePerson(color,parent,mats,options={}){
  const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshPhysicalMaterial({color,roughness:.93,map:mats.fabric.map,bumpMap:mats.fabric.map,bumpScale:.0014,sheen:.12,sheenColor:'#ffffff'});
  const trousers=new THREE.MeshPhysicalMaterial({color:'#424c51',roughness:.94,map:mats.fabric.map,bumpMap:mats.fabric.map,bumpScale:.0012,sheen:.08,sheenColor:'#aab4b6'}),hair=new THREE.MeshPhysicalMaterial({color:'#392f2b',roughness:.59,clearcoat:.045,clearcoatRoughness:.7});
@@ -171,8 +193,9 @@ export function makePerson(color,parent,mats,options={}){
   // 아래팔 반지름 .064, 소매 끝 .14×.15, 손 .068/.092/.054
   shapedPanel(elbow,shirt,foreSleeve,.91,0,0,.012);
   const sleeveLow=new THREE.Group();elbow.add(sleeveLow);shapedPanel(sleeveLow,blouse,foreSleeve,.91,0,0,.012).scale.setScalar(1.055);sleeves.push(sleeveLow);
-  softBox(elbow,mats.white,.14,.045,.15,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.068,.092,.054);const thumb=limb(elbow,mats.skin,.018,.105,x<0?-.065:.065,-.31,.065);thumb.rotation.z=x<0?-.65:.65;
-  const finger=new THREE.Group();elbow.add(finger);finger.visible=false;limb(finger,mats.skin,.017,.18,.02,-.415,0);arm.userData.indexFinger=finger;arms.push(arm);
+  softBox(elbow,mats.white,.14,.045,.15,0,-.215,.015,.015);
+  makeHand(arm,elbow,mats.skin,Math.sign(x));
+  arms.push(arm);
  }
  const upperBody=new THREE.Group();
  upperBody.position.y=.93;

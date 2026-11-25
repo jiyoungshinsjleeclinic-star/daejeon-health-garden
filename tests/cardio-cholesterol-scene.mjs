@@ -1,3 +1,4 @@
+import {setFingerExtended} from '../finger-pose.js';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
 import {makePerson} from '../center-visuals.js';
@@ -7,7 +8,7 @@ const root=new THREE.Group(),visitor=makePerson('#cb8c99',root,mats),employee=ma
 const screen=new THREE.Group();screen.position.set(0,.157,-.083);device.add(screen);device.userData.cholesterolScreen=screen;const strip=new THREE.Group();device.add(strip);device.userData.cholesterolStrip=strip;
 const results={'result-total':['총콜레스테롤',168],'result-triglyceride':['중성지방',150],'result-ldl':['저밀도지단백콜레스테롤',60],'result-hdl':['고밀도지단백콜레스테롤',100]};
 const display={value:{mode:'idle',label:null,value:null,unit:'mg/dL',example:true},reset(){this.value={mode:'idle',label:null,value:null,unit:'mg/dL',example:true}},update(mode){this.value={mode,label:results[mode]?.[0]||null,value:results[mode]?.[1]??null,unit:'mg/dL',example:true}}};device.userData.cholesterolDisplay=display;
-function pose(p,on){p.legs.forEach(l=>{l.rotation.x=on?-Math.PI/2:0;l.userData.knee.rotation.x=on?Math.PI/2:0});p.arms.forEach(a=>{a.rotation.x=on?-.3:0;a.userData.elbow.rotation.x=0;a.userData.indexFinger.visible=false})}
+function pose(p,on){p.legs.forEach(l=>{l.rotation.x=on?-Math.PI/2:0;l.userData.knee.rotation.x=on?Math.PI/2:0});p.arms.forEach(a=>{a.rotation.x=on?-.3:0;a.userData.elbow.rotation.x=0;setFingerExtended(a.userData.indexFinger,false)})}
 let completed=0;const stages=[];const scene=createCholesterolScene(visitor,employee,device,pose,s=>stages.push(s),()=>{completed++;pose(visitor,true)});
 scene.start();const start=performance.now();let elapsed=0;
 for(const [stage,seconds]of CHOLESTEROL_SEQUENCE){

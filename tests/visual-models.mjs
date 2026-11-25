@@ -1,3 +1,4 @@
+import {setFingerExtended} from '../finger-pose.js';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
 import {roundedGeometry,compactMeshes,makePerson,makeChair,makeTable,makePlant,makeChristmasTree} from '../center-visuals.js';
@@ -24,7 +25,7 @@ const standing=finiteModel(person.g);assert(standing.max.y>2&&standing.max.y<2.3
 assert.equal(person.gender,'male');person.setGender('female');assert.equal(person.gender,'female');finiteModel(person.g);person.setGender('male');
 assert.equal(person.legs.length,2);assert.equal(person.arms.length,2);
 assert.equal(person.shoes.length,2);assert.equal(person.feet.length,2);assert(person.shoes.every(s=>s.visible));assert(person.feet.every(f=>!f.visible));
-for(const arm of person.arms){assert(arm.userData.elbow?.parent===arm);assert(!arm.userData.indexFinger.visible);arm.userData.elbow.rotation.x=-.65;arm.userData.indexFinger.visible=true;finiteModel(person.g);arm.userData.elbow.rotation.x=0;arm.userData.indexFinger.visible=false}
+for(const arm of person.arms){assert(arm.userData.elbow?.parent===arm);assert(arm.userData.indexFinger.visible && !arm.userData.indexFinger.userData.extended);arm.userData.elbow.rotation.x=-.65;setFingerExtended(arm.userData.indexFinger,true);finiteModel(person.g);arm.userData.elbow.rotation.x=0;setFingerExtended(arm.userData.indexFinger,false)}
 for(const leg of person.legs){assert(leg.parent===person.g);leg.rotation.x=-Math.PI/2;leg.userData.knee.rotation.x=Math.PI/2}
 finiteModel(person.g);
 person.g.position.y=-.27;for(const leg of person.legs){leg.rotation.x=-1.2;leg.userData.knee.rotation.x=1.2}person.g.updateMatrixWorld(true);for(const shoe of person.shoes){const footBounds=new THREE.Box3().setFromObject(shoe);assert(footBounds.min.y>=-.02&&footBounds.min.y<.04)}assert(Math.abs(person.arms[0].getWorldPosition(new THREE.Vector3()).y-1.2)<1e-6);

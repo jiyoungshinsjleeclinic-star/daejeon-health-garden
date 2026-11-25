@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
 import {createBPScene,BP_SEQUENCE,BP_EXAMPLE} from '../cardio-bp-scene.js';
 const visitor={g:new THREE.Group(),arms:[new THREE.Group(),new THREE.Group()],legs:[new THREE.Group(),new THREE.Group()]};
-visitor.legs.forEach(l=>l.userData.knee=new THREE.Group());visitor.arms.forEach(a=>{a.userData.elbow=new THREE.Group();a.userData.indexFinger=new THREE.Group();a.userData.indexFinger.visible=false});
+visitor.legs.forEach(l=>l.userData.knee=new THREE.Group());visitor.arms.forEach(a=>{a.userData.elbow=new THREE.Group();a.userData.indexFinger=new THREE.Group();Object.assign(a.userData.indexFinger.userData,{length:.089,restRotation:a.userData.indexFinger.rotation.clone(),extended:false})});
 const device=new THREE.Group();device.position.set(5.1,0,4.3);const display={value:{mode:'idle'},update(value){this.value={...this.value,...value}},reset(){this.value={mode:'idle'}}};device.userData.bpDisplay=display;
 const spaces=[],stages=[];let finished=0;const scene=createBPScene(visitor,device,()=>{},s=>stages.push(s),s=>spaces.push(s),()=>{finished++;visitor.g.position.set(0,.13,2)});
 scene.start();let start=performance.now(),elapsed=0;
