@@ -83,10 +83,14 @@ export function makePerson(color,parent,mats,options={}){
  // [온유] 눈매: 윗 속눈썹 선 (머리 곡면을 따라 살짝 돌려 배치)
  const onyuFace=new THREE.Group();g.add(onyuFace);
  for(const s of [-1,1]){const lash=limb(onyuFace,eyes,.0038,.105,s*.085,1.916,.2255);lash.rotation.set(0,s*.3,Math.PI/2)}
+ const openEyes=new THREE.Group(),closedEyes=new THREE.Group();
+ g.add(openEyes,closedEyes);closedEyes.visible=false;
  for(const x of [-.085,.085]){
   // 눈 크기: 흰자 .05×.031, 눈동자 .023×.028
-  ellipsoid(g,mats.white,x,1.89,.221,.05,.031,.012);ellipsoid(g,eyes,x,1.889,.234,.023,.028,.009);
-  ellipsoid(g,mats.white,x-.005,1.897,.24,.005,.006,.003);
+  ellipsoid(openEyes,mats.white,x,1.89,.221,.05,.031,.012);ellipsoid(openEyes,eyes,x,1.889,.234,.023,.028,.009);
+  ellipsoid(openEyes,mats.white,x-.005,1.897,.24,.005,.006,.003);
+  const lid=ellipsoid(closedEyes,eyes,x,1.886,.231,.041,.005,.004);
+  lid.rotation.y=x<0?-.26:.26;
   const brow=softBox(g,hair,.066,.012,.012,x,1.947,.222,.003);brow.rotation.z=x<0?.06:-.06;
  }
  ellipsoid(g,mats.skin,0,1.849,.246,.027,.039,.036);
@@ -135,7 +139,12 @@ export function makePerson(color,parent,mats,options={}){
  compactMeshes(g);
  // 성별 전환: 여성이면 온유 모습(진녹색 조끼·웨이브 단발·흰 소매), 남성이면 기존 모습
  const baseLip=lip.color.clone(),onyuLip=new THREE.Color('#c4766f'),vestGreen=new THREE.Color('#34594a');
- let gender='',savedShirt=null;
+ let gender='',savedShirt=null,eyesClosed=false;
+ function setEyesClosed(value){
+  eyesClosed=Boolean(value);
+  openEyes.visible=!eyesClosed;closedEyes.visible=eyesClosed;
+  onyuFace.visible=gender==='female'&&!eyesClosed;
+ }
  const setGender=value=>{
   const next=value==='female'?'female':'male',female=next==='female';
   if(next!==gender){
@@ -144,10 +153,11 @@ export function makePerson(color,parent,mats,options={}){
    lip.color.copy(female?onyuLip:baseLip);gender=next;
   }
   maleHair.visible=maleFront.visible=!female;
-  onyuHair.visible=onyuFace.visible=onyuFront.visible=female;
+  onyuHair.visible=onyuFront.visible=female;
+  setEyesClosed(eyesClosed);
   sleeves.forEach(sleeve=>sleeve.visible=female);
  };setGender(options.gender);
- return {g,upperBody,shirt,legs,arms,shoes,feet,setGender,get gender(){return gender}};
+ return {g,upperBody,shirt,legs,arms,shoes,feet,setGender,setEyesClosed,get gender(){return gender}};
 }
 
 export function makeChristmasTree(x,z,scale,parent,mats){
