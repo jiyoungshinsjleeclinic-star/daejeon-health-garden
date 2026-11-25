@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {buildPsychologyFurniture,PSYCHOLOGY_VISITOR_SEAT} from './psychology-furniture.js?v=2';
 import {createAromaScene} from './aroma-scene.js?v=1';
-import {createOmnifitScene} from './omnifit-scene.js?v=1';
+import {createOmnifitScene} from './omnifit-scene.js?v=person-2';
 import {createWaistScene} from './cardio-scene.js?v=waist-1';
 import {createHeightScene} from './cardio-height-scene.js?v=height-1';
 import {createBPScene} from './cardio-bp-scene.js?v=bp-1';
@@ -14,7 +14,7 @@ import {createPostureScene} from './posture-scene.js?v=smooth-walk-1';
 import {createEducationScreenMedia} from './education-screen.js?v=education-screen-1';
 import {isReceptionApproach,outsideReceptionArea,inReceptionFront} from './reception-flow.js?v=return-1';
 import {makeDevice} from './center-models.js?v=posture-mat-2';
-import {roundedGeometry,makeMaterials,makePerson,makeChair,makeTable,makePlant,makeChristmasTree} from './center-visuals.js?v=omnifit-1';
+import {roundedGeometry,makeMaterials,makePerson,makeChair,makeTable,makePlant,makeChristmasTree} from './center-visuals.js?v=person-2';
 import {CENTER_PLAN,planPortal,CARDIO_EQUIPMENT,WAITING_SOFA,RECEPTION_RETURN_POINT} from './center-plan.js?v=return-1';
 const host=document.querySelector('#world'),status=document.querySelector('#world-status');
 try { init(); } catch(e) { status.textContent='3D 공간을 불러오지 못했어요. 아래 체험 메뉴는 그대로 이용할 수 있습니다.';host.classList.add('failed');console.error(e); }

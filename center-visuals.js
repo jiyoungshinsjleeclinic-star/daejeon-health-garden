@@ -42,7 +42,7 @@ function surfaceTexture(kind){
 export function makeMaterials(){
  const wood=surfaceTexture('wood'),fabric=surfaceTexture('fabric');
  const m=(color,options={})=>new THREE.MeshPhysicalMaterial({color,roughness:.7,...options});
- return {green:m('#719283',{map:fabric,roughness:.9,sheen:.18,sheenColor:'#d9eee6'}),dark:m('#285c50',{roughness:.52}),white:m('#f3f4f1',{roughness:.4,clearcoat:.08}),wood:m('#ffffff',{map:wood,roughness:.52,clearcoat:.06}),pink:m('#cb8c99',{map:fabric,roughness:.88,sheen:.2,sheenColor:'#f4d8de'}),blue:m('#88acb8',{map:fabric,roughness:.9,sheen:.16,sheenColor:'#dcebed'}),yellow:m('#d8bd6e',{roughness:.62}),leaf:m('#477950',{roughness:.55,clearcoat:.12}),floor:m('#e5e7e6',{roughness:.72}),skin:m('#e6b997',{roughness:.62,clearcoat:.04}),metal:m('#b8c0c2',{metalness:.78,roughness:.25}),leather:m('#33383a',{roughness:.5,clearcoat:.16}),fabric:m('#dedbd0',{map:fabric,roughness:.92,sheen:.16,sheenColor:'#ffffff'})};
+ return {green:m('#719283',{map:fabric,roughness:.9,sheen:.18,sheenColor:'#d9eee6'}),dark:m('#285c50',{roughness:.52}),white:m('#f3f4f1',{roughness:.4,clearcoat:.08}),wood:m('#ffffff',{map:wood,roughness:.52,clearcoat:.06}),pink:m('#cb8c99',{map:fabric,roughness:.88,sheen:.2,sheenColor:'#f4d8de'}),blue:m('#88acb8',{map:fabric,roughness:.9,sheen:.16,sheenColor:'#dcebed'}),yellow:m('#d8bd6e',{roughness:.62}),leaf:m('#477950',{roughness:.55,clearcoat:.12}),floor:m('#e5e7e6',{roughness:.72}),skin:m('#e6b997',{roughness:.79,clearcoat:0}),metal:m('#b8c0c2',{metalness:.78,roughness:.25}),leather:m('#33383a',{roughness:.5,clearcoat:.16}),fabric:m('#dedbd0',{map:fabric,roughness:.92,sheen:.16,sheenColor:'#ffffff'})};
 }
 
 function mesh(parent,geometry,material,x,y,z){const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;parent.add(o);return o}
@@ -50,53 +50,70 @@ function ellipsoid(parent,material,x,y,z,sx,sy,sz){const o=mesh(parent,new THREE
 function softBox(parent,m,w,h,d,x,y,z,r=.07){return mesh(parent,roundedGeometry(w,h,d,r),m,x,y,z)}
 function limb(parent,m,r,length,x,y,z){return mesh(parent,new THREE.CapsuleGeometry(r,Math.max(.01,length-r*2),6,16),m,x,y,z)}
 
+// Elliptical cross sections shape fabric around the body while the joints stay articulated.
+function shapedPanel(parent,material,profile,depth,x,y,z){
+ const curve=new THREE.SplineCurve(profile.map(([height,radius])=>new THREE.Vector2(radius,height)));
+ const rings=curve.getPoints(profile.length*3);
+ rings.unshift(new THREE.Vector2(0,profile[0][0]));
+ rings.push(new THREE.Vector2(0,profile.at(-1)[0]));
+ const geometry=new THREE.LatheGeometry(rings,24);
+ geometry.scale(1,1,depth);
+ return mesh(parent,geometry,material,x,y,z);
+}
+
 export function makePerson(color,parent,mats,options={}){
- const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshPhysicalMaterial({color,roughness:.84,map:mats.fabric.map,sheen:.24,sheenColor:'#ffffff'});
- const trousers=new THREE.MeshPhysicalMaterial({color:'#424c51',roughness:.9,sheen:.12,sheenColor:'#aab4b6'}),hair=new THREE.MeshPhysicalMaterial({color:'#392f2b',roughness:.72,clearcoat:.12,clearcoatRoughness:.55});
+ const g=new THREE.Group();parent.add(g);const shirt=new THREE.MeshPhysicalMaterial({color,roughness:.93,map:mats.fabric.map,bumpMap:mats.fabric.map,bumpScale:.0014,sheen:.12,sheenColor:'#ffffff'});
+ const trousers=new THREE.MeshPhysicalMaterial({color:'#424c51',roughness:.94,map:mats.fabric.map,bumpMap:mats.fabric.map,bumpScale:.0012,sheen:.08,sheenColor:'#aab4b6'}),hair=new THREE.MeshPhysicalMaterial({color:'#392f2b',roughness:.59,clearcoat:.045,clearcoatRoughness:.7});
  const eyes=new THREE.MeshPhysicalMaterial({color:'#252724',roughness:.18,clearcoat:.7}),lip=new THREE.MeshPhysicalMaterial({color:'#ad7667',roughness:.45}),blush=new THREE.MeshPhysicalMaterial({color:'#d89087',roughness:.7,transparent:true,opacity:.38});
  // [온유] 여성일 때만 보이는 재질: 흰 블라우스, 조끼 안쪽 선
- const blouse=new THREE.MeshPhysicalMaterial({color:'#f6f4ee',roughness:.78,sheen:.2,sheenColor:'#ffffff'}),vestEdge=new THREE.MeshPhysicalMaterial({color:'#1f3b31',roughness:.7});
- const torso=ellipsoid(g,shirt,0,1.23,0,.275,.37,.18);torso.rotation.x=-.025;
- ellipsoid(g,shirt,0,1.46,0,.335,.105,.195);
+ const blouse=new THREE.MeshPhysicalMaterial({color:'#f6f4ee',roughness:.9,map:mats.fabric.map,bumpMap:mats.fabric.map,bumpScale:.001,sheen:.12,sheenColor:'#ffffff'}),vestEdge=new THREE.MeshPhysicalMaterial({color:'#1f3b31',roughness:.7});
+ shapedPanel(g,shirt,[[.945,.18],[.965,.243],[1.06,.238],[1.19,.23],[1.34,.28],[1.425,.32],[1.465,.33],[1.49,.288],[1.515,.19],[1.55,.093]],.615,0,0,0);
  ellipsoid(g,trousers,0,.93,0,.245,.135,.17);
- limb(g,mats.skin,.087,.2,0,1.62,0);
- ellipsoid(g,mats.skin,0,1.87,.015,.235,.285,.225);
+ limb(g,mats.skin,.082,.245,0,1.615,0);
+ const head=new THREE.Group();
+ g.add(head);
+ // Build the face in its own coordinates so the eyes, hair and sensors move together.
+ head.position.y=1.67;
+ head.scale.set(.64,.64,.67);
+ shapedPanel(head,mats.skin,[[1.594,.035],[1.626,.098],[1.70,.165],[1.80,.214],[1.89,.233],[1.99,.228],[2.085,.19],[2.14,.10],[2.15,.02]],.94,0,0,.013);
  // 귀(피부색 바깥만)
- for(const x of [-.239,.239]){ellipsoid(g,mats.skin,x,1.86,0,.045,.07,.035)}
+ for(const x of [-.239,.239]){ellipsoid(head,mats.skin,x,1.86,0,.045,.07,.035)}
  // 볼터치: x ±.239 → ±.125, z .224 → .206 (머리 표면 안쪽으로 맞춤)
- for(const x of [-.125,.125])ellipsoid(g,blush,x,1.82,.206,.05,.028,.006);
+ for(const x of [-.125,.125])ellipsoid(head,blush,x,1.82,.206,.05,.028,.006);
  // 남성 머리: 짧은 머리 + 앞머리
- const maleHair=new THREE.Group();g.add(maleHair);
+ const maleHair=new THREE.Group();head.add(maleHair);
  const cap=mesh(maleHair,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.58),hair,0,1.99,.005);cap.scale.set(.255,.225,.247);
  for(const x of [-.13,0,.13]){const bang=ellipsoid(maleHair,hair,x,1.982,.19,.09,.045,.04);bang.rotation.z=x<0?-.24:x>0?.24:0}
  // [온유] 여성 머리: 옆가르마 앞머리 + 어깨까지 오는 웨이브 단발
- const onyuHair=new THREE.Group();g.add(onyuHair);
+ const onyuHair=new THREE.Group();head.add(onyuHair);
  const crown=mesh(onyuHair,new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.56),hair,0,1.99,0);crown.scale.set(.245,.235,.248);crown.rotation.x=-.25;
  const fringe=ellipsoid(onyuHair,hair,-.03,2.012,.205,.17,.055,.048);fringe.rotation.z=.22;
  ellipsoid(onyuHair,hair,0,1.8,-.12,.25,.32,.14);
  ellipsoid(onyuHair,hair,0,1.6,-.12,.215,.16,.1);
  for(const s of [-1,1]){
-  ellipsoid(onyuHair,hair,s*.228,1.8,-.01,.062,.185,.15);
-  ellipsoid(onyuHair,hair,s*.245,1.65,-.02,.06,.13,.11);
-  const tip=ellipsoid(onyuHair,hair,s*.255,1.545,.02,.058,.06,.07);tip.rotation.z=-s*.5;
+  ellipsoid(onyuHair,hair,s*.215,1.785,-.045,.065,.255,.145);
+  ellipsoid(onyuHair,hair,s*.225,1.675,-.055,.053,.155,.115);
+  const tip=ellipsoid(onyuHair,hair,s*.232,1.57,-.018,.040,.093,.066);tip.rotation.z=-s*.5;
  }
  // [온유] 눈매: 윗 속눈썹 선 (머리 곡면을 따라 살짝 돌려 배치)
- const onyuFace=new THREE.Group();g.add(onyuFace);
+ const onyuFace=new THREE.Group();head.add(onyuFace);
  for(const s of [-1,1]){const lash=limb(onyuFace,eyes,.0038,.105,s*.085,1.916,.2255);lash.rotation.set(0,s*.3,Math.PI/2)}
  const openEyes=new THREE.Group(),closedEyes=new THREE.Group();
- g.add(openEyes,closedEyes);closedEyes.visible=false;
+ head.add(openEyes,closedEyes);closedEyes.visible=false;
  for(const x of [-.085,.085]){
   // 눈 크기: 흰자 .05×.031, 눈동자 .023×.028
-  ellipsoid(openEyes,mats.white,x,1.89,.221,.05,.031,.012);ellipsoid(openEyes,eyes,x,1.889,.234,.023,.028,.009);
+  ellipsoid(openEyes,mats.white,x,1.89,.221,.045,.022,.012);ellipsoid(openEyes,eyes,x,1.889,.234,.020,.020,.009);
   ellipsoid(openEyes,mats.white,x-.005,1.897,.24,.005,.006,.003);
   const lid=ellipsoid(closedEyes,eyes,x,1.886,.231,.041,.005,.004);
   lid.rotation.y=x<0?-.26:.26;
-  const brow=softBox(g,hair,.066,.012,.012,x,1.947,.222,.003);brow.rotation.z=x<0?.06:-.06;
+  const brow=softBox(head,hair,.066,.012,.012,x,1.947,.222,.003);brow.rotation.z=x<0?.06:-.06;
  }
- ellipsoid(g,mats.skin,0,1.849,.246,.027,.039,.036);
+ ellipsoid(head,mats.skin,0,1.862,.225,.024,.061,.024);
+ ellipsoid(head,mats.skin,0,1.831,.242,.032,.027,.029);
  // 입: 머리 표면보다 앞으로 이동하고 양 끝을 살짝 올림
- ellipsoid(g,lip,0,1.784,.229,.034,.0105,.011);
- for(const side of [-1,1]){const corner=ellipsoid(g,lip,side*.038,1.79,.2255,.02,.009,.01);corner.rotation.z=side*.5}
+ ellipsoid(head,lip,0,1.784,.211,.034,.0105,.011);
+ for(const side of [-1,1]){const corner=ellipsoid(head,lip,side*.038,1.79,.208,.02,.009,.01);corner.rotation.z=side*.5}
+ for(const feature of head.children)feature.position.y-=1.67;
  for(const side of [-1,1]){const collar=softBox(g,mats.white,.085,.105,.02,side*.055,1.49,.18,.012);collar.rotation.z=side*.4}
  // 남성: 셔츠 앞단추
  const maleFront=new THREE.Group();g.add(maleFront);
@@ -107,16 +124,18 @@ export function makePerson(color,parent,mats,options={}){
  const vShape=new THREE.Shape();vShape.moveTo(-.09,0);vShape.lineTo(.09,0);vShape.lineTo(0,-.2);vShape.closePath();
  mesh(onyuFront,new THREE.ExtrudeGeometry(vShape,{depth:.03,bevelEnabled:false}),blouse,0,1.51,.172);
  for(const s of [-1,1]){const edge=limb(onyuFront,vestEdge,.007,.21,s*.045,1.405,.2035);edge.rotation.z=-s*.442}
+ const upperSleeve=[[-.33,.064],[-.265,.072],[-.135,.085],[-.03,.099],[.032,.085],[.065,.047],[.075,.012]];
+ const foreSleeve=[[-.23,.060],[-.18,.065],[-.09,.073],[.005,.069],[.048,.047]];
  const arms=[],legs=[],shoes=[],feet=[],sleeves=[];
  for(const x of [-.355,.355]){
   const arm=new THREE.Group();arm.position.set(x,1.47,0);g.add(arm);
   // 어깨 .092/.115/.095, 위팔 반지름 .072 (길이·관절 위치는 그대로)
-  ellipsoid(arm,shirt,0,-.02,0,.092,.115,.095);limb(arm,shirt,.072,.36,0,-.16,0);const elbow=new THREE.Group();elbow.position.y=-.3;arm.add(elbow);arm.userData.elbow=elbow;
+  shapedPanel(arm,shirt,upperSleeve,.93,0,0,0);const elbow=new THREE.Group();elbow.position.y=-.3;arm.add(elbow);arm.userData.elbow=elbow;
   // [온유] 흰 블라우스 소매: 팔보다 살짝 크게 덮음 (여성일 때만 표시)
-  const sleeveUp=new THREE.Group();arm.add(sleeveUp);ellipsoid(sleeveUp,blouse,0,-.02,0,.1,.122,.103);limb(sleeveUp,blouse,.079,.36,0,-.16,0);sleeves.push(sleeveUp);
+  const sleeveUp=new THREE.Group();arm.add(sleeveUp);shapedPanel(sleeveUp,blouse,upperSleeve,.93,0,0,0).scale.setScalar(1.055);sleeves.push(sleeveUp);
   // 아래팔 반지름 .064, 소매 끝 .14×.15, 손 .068/.092/.054
-  limb(elbow,shirt,.064,.29,0,-.1,.015);
-  const sleeveLow=new THREE.Group();elbow.add(sleeveLow);limb(sleeveLow,blouse,.07,.29,0,-.1,.015);sleeves.push(sleeveLow);
+  shapedPanel(elbow,shirt,foreSleeve,.91,0,0,.012);
+  const sleeveLow=new THREE.Group();elbow.add(sleeveLow);shapedPanel(sleeveLow,blouse,foreSleeve,.91,0,0,.012).scale.setScalar(1.055);sleeves.push(sleeveLow);
   softBox(elbow,mats.white,.14,.045,.15,0,-.215,.015,.015);ellipsoid(elbow,mats.skin,0,-.294,.026,.068,.092,.054);const thumb=limb(elbow,mats.skin,.018,.105,x<0?-.065:.065,-.31,.065);thumb.rotation.z=x<0?-.65:.65;
   const finger=new THREE.Group();elbow.add(finger);finger.visible=false;limb(finger,mats.skin,.017,.18,.02,-.415,0);arm.userData.indexFinger=finger;arms.push(arm);
  }
@@ -128,8 +147,8 @@ export function makePerson(color,parent,mats,options={}){
  }
  g.add(upperBody);
  for(const x of [-.14,.14]){
-  const leg=new THREE.Group();leg.position.set(x,.91,0);g.add(leg);limb(leg,trousers,.108,.44,0,-.2,0);
-  const knee=new THREE.Group();knee.position.y=-.41;leg.add(knee);limb(knee,trousers,.097,.39,0,-.17,0);
+  const leg=new THREE.Group();leg.position.set(x,.91,0);g.add(leg);shapedPanel(leg,trousers,[[-.445,.083],[-.39,.094],[-.26,.106],[-.11,.119],[.016,.121],[.07,.089]],1.02,0,0,0);
+  const knee=new THREE.Group();knee.position.y=-.41;leg.add(knee);shapedPanel(knee,trousers,[[-.367,.077],[-.33,.078],[-.22,.084],[-.12,.097],[-.04,.094],[.012,.087],[.045,.061]],1.01,0,0,0);
   const shoe=new THREE.Group();knee.add(shoe);shoes.push(shoe);
   softBox(shoe,mats.white,.22,.06,.39,0,-.455,.072,.025);softBox(shoe,mats.leather,.205,.135,.35,0,-.38,.065,.045);softBox(shoe,mats.dark,.212,.025,.36,0,-.482,.072,.012);
   for(const z of [.03,.09,.15])softBox(shoe,mats.white,.12,.009,.013,0,-.31,z,.003);
@@ -157,7 +176,7 @@ export function makePerson(color,parent,mats,options={}){
   setEyesClosed(eyesClosed);
   sleeves.forEach(sleeve=>sleeve.visible=female);
  };setGender(options.gender);
- return {g,upperBody,shirt,legs,arms,shoes,feet,setGender,setEyesClosed,get gender(){return gender}};
+ return {g,head,upperBody,shirt,legs,arms,shoes,feet,setGender,setEyesClosed,get gender(){return gender}};
 }
 
 export function makeChristmasTree(x,z,scale,parent,mats){

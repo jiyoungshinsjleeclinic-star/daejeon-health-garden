@@ -22,6 +22,7 @@ export function createOmnifitScene(avatar,guide,room,pose,planWalk,onStage){
  tablet.scale.setScalar(.77);
  const band=new THREE.Group(),clip=new THREE.Group();
  group.add(band,clip);
+ band.scale.copy(avatar.head.scale);clip.scale.setScalar(.78);
  mesh(new THREE.TorusGeometry(.25,.022,9,38,Math.PI*1.86),silver,band).rotation.x=Math.PI/2;
  for(const x of [-.22,.22])box(.097,.062,.12,black,band).position.set(x,.006,.088);
  box(.065,.115,.044,black,clip);
@@ -35,7 +36,6 @@ export function createOmnifitScene(avatar,guide,room,pose,planWalk,onStage){
  const visitorPose=new THREE.Vector3(),bandTable=new THREE.Vector3(),clipTable=new THREE.Vector3();
  const head=new THREE.Vector3(),ear=new THREE.Vector3();
  let stage='idle',started=0,route=[],side=1;
- const up=new THREE.Vector3(0,1,0);
  let lengths=[],total=0;
 
  function guideWalk(f,back=false){
@@ -96,8 +96,8 @@ export function createOmnifitScene(avatar,guide,room,pose,planWalk,onStage){
    clipTable.copy(bandTable).add(new THREE.Vector3(0,.03,.22));
    tablet.position.set(side*.30,1.50,THREE.MathUtils.clamp(bandTable.z+.48,-1.18,1.22));
    tablet.rotation.y=side*Math.PI/2*.72;tablet.rotation.x=-.18;
-   head.copy(new THREE.Vector3(0,1.986,0).applyAxisAngle(up,avatar.g.rotation.y).add(visitorPose));
-   ear.copy(new THREE.Vector3(-.258,1.81,.02).applyAxisAngle(up,avatar.g.rotation.y).add(visitorPose));
+   room.worldToLocal(avatar.head.localToWorld(head.set(0,1.986-1.67,0)));
+   room.worldToLocal(avatar.head.localToWorld(ear.set(-.258,1.81-1.67,.02)));
    started=now;group.visible=true;holdGear(0);emit('intro');
    return true;
   },
