@@ -47,42 +47,34 @@ const instructions={
 const reports={
  eeg:{
   title:'뇌파 검사 결과서',
+  image:'./assets/omnifit/eeg.png',
   items:[
-   ['뇌 건강 점수','39 / 100점','100점 척도로 표시되는 기기 요약 점수입니다. 예시 보고서의 참고값은 70점입니다. 수면이나 당일 컨디션의 영향도 함께 살펴봅니다.'],
-   ['뇌 활성도','30.7 Hz','인지 활동에 따른 작업부하를 보여주는 기기 지표입니다. 예시 보고서의 참고 범위는 11.7–19.5 Hz입니다.'],
-   ['두뇌 스트레스','9.9','예시 보고서에서는 7을 참고 경계로 사용합니다. 수치가 반복해서 높다면 생활 여건과 증상을 상담사에게 함께 설명해 주세요.'],
-   ['뇌 좌우 균형','51 : 49','양쪽 뇌파의 상대적 균형입니다. 생활습관, 업무, 측정 조건에 따라 달라질 수 있어 편중이 지속되면 상담 시 확인합니다.'],
-   ['집중도','레벨 1','전두부 뇌파로 주의력과 몰입을 추정하는 기기 지표입니다. 레벨 5를 참고해 보고서의 점수 방향을 살펴볼 수 있습니다.'],
+   ['뇌 건강 점수','100점 척도로 표시되는 기기 요약 점수입니다. 예시 보고서의 참고값은 70점입니다. 수면이나 당일 컨디션의 영향도 함께 살펴봅니다.'],
+   ['뇌 활성도','인지 활동에 따른 작업부하를 보여주는 기기 지표입니다. 예시 보고서의 참고 범위는 11.7–19.5 Hz입니다.'],
+   ['두뇌 스트레스','예시 보고서에서는 7을 참고 경계로 사용합니다. 수치가 반복해서 높다면 생활 여건과 증상을 상담사에게 함께 설명해 주세요.'],
+   ['뇌 좌우 균형','양쪽 뇌파의 상대적 균형입니다. 생활습관, 업무, 측정 조건에 따라 달라질 수 있어 편중이 지속되면 상담 시 확인합니다.'],
+   ['집중도','전두부 뇌파로 주의력과 몰입을 추정하는 기기 지표입니다. 레벨 5를 참고해 보고서의 점수 방향을 살펴볼 수 있습니다.'],
   ],
  },
  pulse:{
   title:'맥파 검사 결과서',
+  image:'./assets/omnifit/pulse.png',
   items:[
-   ['자율신경 균형','교감 74 : 부교감 26','기기가 맥파를 분석해 상대적 비율로 보여줍니다. 긴장, 호흡, 자세, 피로 등에 영향을 받으며 균형 범위는 기기 기준과 측정 상황에 따라 해석합니다.'],
-   ['심박 간격','평균 680 ms','맥박 사이의 간격입니다. 간격의 변화로 심박변이도(HRV)를 살펴봅니다.'],
-   ['HF','0.9','심박변이도의 고주파 성분입니다. 호흡과 관련된 부교감 활동의 영향을 받습니다.'],
-   ['LF','2.6','심박변이도의 저주파 성분입니다. 여러 조절 작용이 함께 반영되는 지표입니다.'],
-   ['전체 주파수 성분(TF)','—','심박변이도에 포함된 전체 주파수 성분의 크기를 나타냅니다. 단위와 참고값은 실제 기기 보고서에서 확인합니다.'],
-   ['HRV 지수','4.0','심박 간격의 변동성을 요약한 별도 지표입니다.'],
+   ['자율신경 균형','기기가 맥파를 분석해 상대적 비율로 보여줍니다. 긴장, 호흡, 자세, 피로 등에 영향을 받으며 균형 범위는 기기 기준과 측정 상황에 따라 해석합니다.'],
+   ['심박 간격','맥박 사이의 간격입니다. 간격의 변화로 심박변이도(HRV)를 살펴봅니다.'],
+   ['HF','심박변이도의 고주파 성분입니다. 호흡과 관련된 부교감 활동의 영향을 받습니다.'],
+   ['LF','심박변이도의 저주파 성분입니다. 여러 조절 작용이 함께 반영되는 지표입니다.'],
+   ['전체 주파수 성분(TF)','심박변이도에 포함된 전체 주파수 성분의 크기를 나타냅니다. 단위와 참고값은 실제 기기 보고서에서 확인합니다.'],
+   ['HRV 지수','심박 간격의 변동성을 요약한 별도 지표입니다.'],
   ],
  },
 };
 
 function showReport(kind){
- const {title,items}=reports[kind];
+ const {title,image,items}=reports[kind];
  const heading=kind==='eeg'?'이제 결과 해석을 해드리겠습니다. 먼저 뇌파 분석 항목입니다.':'이어서 맥파 검사 결과 항목입니다.';
- const report=items.map(([name,value])=>'<div><dt>'+name+'</dt><dd>'+value+'</dd></div>').join('');
- const explanation=items.map(([name,,text])=>'<li><strong>'+name+'</strong><p>'+text+'</p></li>').join('');
- window.show('옴니핏 태블릿 · 가상 결과','<section data-omnifit-report><p role="status"><strong>안내원</strong> '+heading+'</p><div class="omnifit-report-grid"><section class="omnifit-tablet"><p class="eyebrow">OMNIFIT 체험 예시</p><h2>'+title+'</h2><canvas width="460" height="94" aria-label="가상 신호 파형" role="img"></canvas><dl>'+report+'</dl></section><section><h3>결과 항목 설명</h3><ul class="omnifit-explanations">'+explanation+'</ul></section></div><p class="small">가상 예시입니다. 실제 측정값이나 질환 진단에 해당하지 않습니다.</p><div class="actions">'+(kind==='pulse'?'<button type="button" class="btn light" data-eeg>뇌파 결과 다시 보기</button>':'')+'<button type="button" class="btn" data-next>'+ (kind==='eeg'?'맥파 검사 결과 보기':'결과 설명 마치기')+'</button></div></section>');
- const canvas=dialog.querySelector('canvas'),context=canvas.getContext('2d');
- context.strokeStyle='#b8d0ca';context.lineWidth=1;
- for(let y=12;y<canvas.height;y+=18){context.beginPath();context.moveTo(0,y);context.lineTo(canvas.width,y);context.stroke()}
- context.strokeStyle='#258377';context.lineWidth=2;context.beginPath();
- for(let x=0;x<canvas.width;x++){
-  const signal=kind==='eeg'?Math.sin(x*.33)*9+Math.sin(x*.91)*4+Math.sin(x*.066)*11:Math.sin(x*.06)*8+Math.sin(x*.22)*3;
-  context.lineTo(x,canvas.height/2+signal);
- }
- context.stroke();
+ const explanation=items.map(([name,text])=>'<li><strong>'+name+'</strong><p>'+text+'</p></li>').join('');
+ window.show('옴니핏 태블릿 · 결과 예시','<section data-omnifit-report><p role="status"><strong>안내원</strong> '+heading+'</p><div class="omnifit-report-grid"><section class="omnifit-tablet"><p class="eyebrow">OMNIFIT 체험 예시</p><h2>'+title+'</h2><img src="'+image+'" alt="'+title+' 예시 사진"></section><section><h3>결과 항목 설명</h3><ul class="omnifit-explanations">'+explanation+'</ul></section></div><p class="small">참고용 결과서 사진입니다. 이번 체험에서 측정한 결과가 아닙니다.</p><div class="actions">'+(kind==='pulse'?'<button type="button" class="btn light" data-eeg>뇌파 결과 다시 보기</button>':'')+'<button type="button" class="btn" data-next>'+ (kind==='eeg'?'맥파 검사 결과 보기':'결과 설명 마치기')+'</button></div></section>');
  dialog.querySelector('[data-eeg]')?.addEventListener('click',()=>showReport('eeg'));
  dialog.querySelector('[data-next]').onclick=()=>{
   if(kind==='eeg'){showReport('pulse');return}
