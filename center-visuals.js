@@ -128,6 +128,7 @@ export function makePerson(color,parent,mats,options={}){
  for(const x of [-.13,0,.13]){const bang=ellipsoid(maleHair,hair,x,1.982,.19,.09,.045,.04);bang.rotation.z=x<0?-.24:x>0?.24:0}
  const bobMaterial=hair.clone();
  bobMaterial.vertexColors=true;
+ bobMaterial.side=THREE.DoubleSide;
  const onyuHair=mesh(head,bobGeometry(),bobMaterial,0,0,0);
  // [온유] 눈매: 윗 속눈썹 선 (머리 곡면을 따라 살짝 돌려 배치)
  const onyuFace=new THREE.Group();head.add(onyuFace);
