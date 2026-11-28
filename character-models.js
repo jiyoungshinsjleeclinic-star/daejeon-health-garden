@@ -1,6 +1,8 @@
 import * as THREE from './vendor/three.module.js';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 
+import {articulate} from './character-articulation.js';
+
 const models = new Map();
 const materialCache = new Map();
 const textures = new Map();
@@ -38,7 +40,7 @@ export async function loadCharacterModels() {
     textures.set(name, texture);
   }));
   for (const [gender, gltf] of await Promise.all(['male','female'].map(async gender =>
-    [gender, await gltfLoader.loadAsync(new URL(gender + '.glb?v=fit-2', directory).href)]))) {
+    [gender, await gltfLoader.loadAsync(new URL(gender + '.glb?v=motion-3', directory).href)]))) {
     const parts = [];
     gltf.scene.traverse(node => {
       if (!node.isMesh) return;
@@ -51,7 +53,7 @@ export async function loadCharacterModels() {
       parts.push({part: node.userData.part, geometry});
     });
     addBlinkTarget(parts);
-    models.set(gender, parts);
+    models.set(gender,{parts,...gltf.scene.userData});
   }
 }
 
@@ -89,7 +91,8 @@ export function dressCharacter(rig) {
   }
   g.updateWorldMatrix(true,true);
   const inverseRest = node => node.matrixWorld.clone().invert().multiply(g.matrixWorld);
-  const skeleton = new THREE.Skeleton(bones, bones.map(inverseRest));
+  const rest = new Map(bones.map(b=>[b,inverseRest(b)]));
+  let articulation;
   const footwearRest = shoes.map(inverseRest);
   const placeholders = [];
   g.traverse(node => { if (node.isMesh) placeholders.push(node); });
@@ -108,7 +111,10 @@ export function dressCharacter(rig) {
     for (const node of pieces) node.removeFromParent();
     for (const material of tints) material.dispose();
     pieces = []; tints = [];
-    for (const {part,geometry} of models.get(current)) {
+    const {parts,jointNames,pivots} = models.get(current);
+    articulation?.dispose();
+    articulation = articulate(rig,jointNames,pivots,rest);
+    for (const {part,geometry} of parts) {
       let material = materialFor(part,current);
       if (part === (current === 'female' ? 'pine knit' : 'ivory woven shirt')) {
         material = material.clone();
@@ -124,7 +130,7 @@ export function dressCharacter(rig) {
         (part.startsWith('barefoot') ? feet : shoes)[i].add(mesh);
       } else {
         mesh = new THREE.SkinnedMesh(geometry,material);
-        mesh.bind(skeleton,new THREE.Matrix4());
+        mesh.bind(articulation.skeleton,new THREE.Matrix4());
         mesh.frustumCulled = false;
         look.add(mesh);
       }
@@ -143,7 +149,7 @@ export function dressCharacter(rig) {
   rig.setGender = setGender;
   rig.setEyesClosed = setEyesClosed;
   g.userData.disposeCharacter = () => {
-    skeleton.dispose();
+    articulation?.dispose();
     for (const material of tints) material.dispose();
   };
   setGender(rig.gender);

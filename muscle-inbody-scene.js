@@ -14,13 +14,13 @@ export function createMuscleInBodyScene(visitor,staff,device,pose,onStage,onComp
  visitor.shoes.forEach((shoe,i)=>{const copy=shoe.clone(true);copy.position.set(approach.x+(i?-.16:.16),.45,approach.z+.24);loose.add(copy)});
  let active=false,stage='idle',startTime=0,frame=0;
  const setShoes=on=>{visitor.shoes.forEach(s=>s.visible=on);visitor.feet.forEach(f=>f.visible=!on);loose.visible=!on};
- function resetPose(){pose(visitor,false);visitor.g.rotation.x=0;visitor.arms.forEach(a=>{a.rotation.set(0,0,0);a.userData.elbow.rotation.x=0})}
- function resetStaffPose(){pose(staff,false);staff.g.rotation.x=0;staff.arms.forEach(a=>{a.rotation.set(0,0,0);a.userData.elbow.rotation.x=0})}
+ function resetPose(){pose(visitor,false);visitor.g.rotation.x=0;visitor.arms.forEach(a=>{a.rotation.set(0,0,0);a.userData.grip=0;a.userData.elbow.rotation.x=0})}
+ function resetStaffPose(){pose(staff,false);staff.g.rotation.x=0;staff.arms.forEach(a=>{a.rotation.set(0,0,0);a.userData.grip=0;a.userData.elbow.rotation.x=0})}
  function faceDevice(){visitor.g.rotation.y=Math.atan2(device.position.x-visitor.g.position.x,device.position.z-visitor.g.position.z)}
  function transition(next){if(stage!==next){stage=next;onStage(next)}}
  function walk(f,back=false){let distance=THREE.MathUtils.clamp(back?1-f:f,0,1)*total;for(let i=0;i<lengths.length;i++){if(distance<=lengths[i]||i===lengths.length-1){visitor.g.position.lerpVectors(route[i],route[i+1],Math.min(1,distance/lengths[i]));const d=route[i+1].clone().sub(route[i]).multiplyScalar(back?-1:1);visitor.g.rotation.y=Math.atan2(d.x,d.z);break}distance-=lengths[i]}visitor.legs.forEach((l,i)=>{const stride=Math.sin(f*42+i*Math.PI);l.rotation.x=stride*.28;l.userData.knee.rotation.x=Math.max(0,-stride)*.24});visitor.arms.forEach((a,i)=>a.rotation.x=-Math.sin(f*42+i*Math.PI)*.2)}
  function staffWalk(f,back=false){let distance=THREE.MathUtils.clamp(back?1-f:f,0,1)*staffTotal;for(let i=0;i<staffLengths.length;i++){if(distance<=staffLengths[i]||i===staffLengths.length-1){staff.g.position.lerpVectors(staffRoute[i],staffRoute[i+1],Math.min(1,distance/staffLengths[i]));const d=staffRoute[i+1].clone().sub(staffRoute[i]).multiplyScalar(back?-1:1);staff.g.rotation.y=Math.atan2(d.x,d.z);break}distance-=staffLengths[i]}staff.legs.forEach((l,i)=>{const stride=Math.sin(f*38+i*Math.PI);l.rotation.x=stride*.24;l.userData.knee.rotation.x=Math.max(0,-stride)*.2});staff.arms.forEach((a,i)=>a.rotation.x=-Math.sin(f*38+i*Math.PI)*.18)}
- function grip(amount){visitor.arms.forEach((arm,i)=>{arm.rotation.z=(i===0?-1:1)*.72*amount;arm.rotation.x=-.2*amount;arm.userData.elbow.rotation.x=-.38*amount})}
+ function grip(amount){visitor.arms.forEach((arm,i)=>{arm.userData.grip=.92*amount;arm.rotation.z=(i===0?-1:1)*.72*amount;arm.rotation.x=-.2*amount;arm.userData.elbow.rotation.x=-.38*amount})}
  function seatStaff(){resetStaffPose();staff.g.position.copy(staffSeat);staff.g.rotation.set(0,0,0);pose(staff,true)}
  function cancel(){const wasActive=active;active=false;if(typeof cancelAnimationFrame==='function')cancelAnimationFrame(frame);stage='idle';display?.reset();setShoes(true);resetPose();seatStaff();if(wasActive){visitor.g.position.copy(seat);visitor.g.rotation.set(0,Math.PI,0);pose(visitor,true)}}
  const loop=now=>{if(!active)return;api.update(now);if(active)frame=requestAnimationFrame(loop)};
