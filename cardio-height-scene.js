@@ -6,7 +6,9 @@ export function createHeightScene(visitor,device,pose,onStage,onComplete){
  const approach=new THREE.Vector3(device.position.x,0,device.position.z+1.35);
  const platform=new THREE.Vector3(device.position.x,platformY,device.position.z+.12);
  const route=[new THREE.Vector3(0,0,3.3),new THREE.Vector3(-2.7,0,3.3),new THREE.Vector3(-2.7,0,-1.3),approach];
- const lengths=route.slice(1).map((p,i)=>p.distanceTo(route[i])),total=lengths.reduce((a,b)=>a+b,0);
+ // The backrest is at z=2.51. Return through the aisle on the table side.
+ const front=new THREE.Vector3(0,0,1.08);
+ const returnRoute=[approach,route[2],new THREE.Vector3(-2.7,0,front.z),front];
  const loose=new THREE.Group();device.parent.add(loose);loose.visible=false;
  visitor.shoes.forEach((shoe,i)=>{const copy=shoe.clone(true);copy.position.set(approach.x+(i===0?-.15:.15),.5,approach.z+.3);loose.add(copy)});
  let active=false,startTime=0,stage='idle';
@@ -14,8 +16,10 @@ export function createHeightScene(visitor,device,pose,onStage,onComplete){
  function resetPose(){pose(visitor,false);visitor.g.rotation.x=0;visitor.arms.forEach(a=>a.rotation.set(0,0,0))}
  function transition(next){if(stage!==next){stage=next;onStage(next)}}
  function walk(f,reverse=false){
-  let distance=THREE.MathUtils.clamp(reverse?1-f:f,0,1)*total;
-  for(let i=0;i<lengths.length;i++){if(distance<=lengths[i]||i===lengths.length-1){visitor.g.position.lerpVectors(route[i],route[i+1],Math.min(1,distance/lengths[i]));const direction=route[i+1].clone().sub(route[i]).multiplyScalar(reverse?-1:1);visitor.g.rotation.y=Math.atan2(direction.x,direction.z);break}distance-=lengths[i]}
+  const points=reverse?returnRoute:route;
+  const lengths=points.slice(1).map((p,i)=>p.distanceTo(points[i]));
+  let distance=THREE.MathUtils.clamp(f,0,1)*lengths.reduce((a,b)=>a+b,0);
+  for(let i=0;i<lengths.length;i++){if(distance<=lengths[i]||i===lengths.length-1){visitor.g.position.lerpVectors(points[i],points[i+1],Math.min(1,distance/lengths[i]));const direction=points[i+1].clone().sub(points[i]);visitor.g.rotation.y=Math.atan2(direction.x,direction.z);break}distance-=lengths[i]}
  }
  function cancel(){const wasActive=active;active=false;stage='idle';head.position.y=home;setShoes(true);resetPose();if(wasActive)visitor.g.position.copy(approach)}
  return {
@@ -38,7 +42,7 @@ export function createHeightScene(visitor,device,pose,onStage,onComplete){
     const off=next==='stepping-off';visitor.g.position.lerpVectors(off?platform:approach,off?approach:platform,smooth);visitor.g.rotation.y=0;setShoes(false);visitor.legs.forEach((l,i)=>l.rotation.x=Math.sin(f*Math.PI*2+i*Math.PI)*.16);
    }
    else if(next==='sitting'){
-    visitor.g.position.lerpVectors(route[0],new THREE.Vector3(0,.13,2),smooth);visitor.g.rotation.y=Math.PI;visitor.legs.forEach(l=>{l.rotation.x=-Math.PI/2*smooth;l.userData.knee.rotation.x=Math.PI/2*smooth});
+    visitor.g.position.lerpVectors(front,new THREE.Vector3(0,.13,2),smooth);visitor.g.rotation.y=Math.PI;visitor.legs.forEach(l=>{l.rotation.x=-Math.PI/2*smooth;l.userData.knee.rotation.x=Math.PI/2*smooth});
    }
    else{
     visitor.g.position.copy(platform);visitor.g.rotation.y=0;setShoes(false);

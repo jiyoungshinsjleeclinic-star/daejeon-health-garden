@@ -7,7 +7,7 @@ export const BP_SEQUENCE=[['invitation',5],['standing',1],['room-out',3],['lobby
 export function createBPScene(visitor,device,pose,onStage,onSpace,onComplete){
  const display=device.userData.bpDisplay,portal=planPortal(CENTER_PLAN.rooms.cardio),doorX=CENTER_PLAN.rooms.cardio.doorX;
  const outside=new THREE.Vector3(portal.x-1.5,0,portal.z),approach=new THREE.Vector3(device.position.x,0,device.position.z+1.8),chair=new THREE.Vector3(device.position.x,-.27,device.position.z+.9);
- const roomRoute=[new THREE.Vector3(0,0,3.3),new THREE.Vector3(doorX,0,3.3),new THREE.Vector3(doorX,0,4.25)];
+ const roomRoute=[new THREE.Vector3(0,0,1.08),new THREE.Vector3(doorX,0,1.08),new THREE.Vector3(doorX,0,4.25)];
  const lobbyRoute=[outside,new THREE.Vector3(3.9,0,4.9),new THREE.Vector3(4.1,0,6.1),approach];
  let active=false,stage='idle',space='cardio',startTime=0,lastPressure=-1;
  function resetPose(){pose(visitor,false);visitor.g.rotation.x=0;visitor.arms.forEach(a=>{a.rotation.set(0,0,0);a.position.z=0;if(a.userData.elbow)a.userData.elbow.rotation.x=0;if(a.userData.indexFinger)setFingerExtended(a.userData.indexFinger,false)})}

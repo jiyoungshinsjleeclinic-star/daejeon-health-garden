@@ -1,16 +1,16 @@
-import {loadCharacterModels,dressCharacter} from './character-models.js';
+import {loadCharacterModels,dressCharacter} from './character-models.js?v=fit-2';
 import {setFingerExtended} from './finger-pose.js';
 import * as THREE from './vendor/three.module.js';
 import {buildPsychologyFurniture,PSYCHOLOGY_VISITOR_SEAT} from './psychology-furniture.js?v=2';
 import {createAromaScene} from './aroma-scene.js?v=hands-1';
 import {createOmnifitScene} from './omnifit-scene.js?v=person-2';
 import {createWaistScene} from './cardio-scene.js?v=waist-1';
-import {createHeightScene} from './cardio-height-scene.js?v=height-1';
-import {createBPScene} from './cardio-bp-scene.js?v=hands-1';
+import {createHeightScene} from './cardio-height-scene.js?v=height-2';
+import {createBPScene} from './cardio-bp-scene.js?v=chair-2';
 import {createGlucoseScene} from './cardio-glucose-scene.js?v=hands-1';
 import {createCholesterolScene} from './cardio-cholesterol-scene.js?v=hands-1';
 import {createHbA1cScene} from './cardio-hba1c-scene.js?v=hands-1';
-import {createArterialScene} from './cardio-arterial-scene.js?v=hands-1';
+import {createArterialScene} from './cardio-arterial-scene.js?v=chair-2';
 import {createMuscleInBodyScene} from './muscle-inbody-scene.js?v=arm-view-1';
 import {createPostureScene} from './posture-scene.js?v=smooth-walk-1';
 import {createEducationScreenMedia} from './education-screen.js?v=education-screen-1';
@@ -76,7 +76,7 @@ function addDevice(type,x,z,detailed=false,y=0){const o=makeDevice(type,x,z,{par
 function deviceTag(name,type,x,z,detailed=false){const sign=label(name,x,2.65,z,'#305d4e',2.8);sign.material.toneMapped=false;sign.userData.hideDuringBP=type==='bloodpressure';sign.userData.hideDuringHeight=type==='heightweight';register(sign,'facility',{id:type},detailed?roomClickable:clickable)}
 function roomDecor(def,detailed){
 const gym=def.id==='muscle',size=roomSize(def),w=size.w,d=size.d,doorX=layout[def.id]?.doorX||0;
-box(w,.12,d,0,.02,0,gym?'#d8c19c':'#e2e6e5');box(w,3.4,.18,0,1.7,-d/2,mats.white);box(.18,2.6,d,-w/2,1.3,0,mats.white);box(.18,.7,d,w/2,.35,0,mats.white);
+box(w,.12,d,0,detailed?-.06:.02,0,gym?'#d8c19c':'#e2e6e5');box(w,3.4,.18,0,1.7,-d/2,mats.white);box(.18,2.6,d,-w/2,1.3,0,mats.white);box(.18,.7,d,w/2,.35,0,mats.white);
 
 for(const [left,right] of [[-w/2,doorX-1.2],[doorX+1.2,w/2]]){const width=right-left;if(width<=0)continue;const x=(left+right)/2;box(width,.8,.18,x,.4,d/2,mats.white);indoorParts.push(box(width,2.6,.18,x,2.1,d/2,mats.white))}
 indoorParts.push(box(.18,2.7,d,w/2,2.05,0,mats.white),box(.18,.8,d,-w/2,3,0,mats.white),box(2.4,.6,.18,doorX,3.1,d/2,mats.white));
@@ -87,7 +87,7 @@ doorLeaf.userData.doorLeaf=true;
 waistOccluders.push(doorLeaf);
 const roof=box(w,.12,d,0,3.65,0,new THREE.MeshBasicMaterial({color:'#e7e9e7'}));roof.castShadow=false;indoorParts.push(roof);for(const x of [-2,2]){const light=box(1.8,.04,.6,x,3.55,-1,new THREE.MeshBasicMaterial({color:'#ffffff'}));light.castShadow=false;indoorParts.push(light)}
 if(def.id==='education'){
- const woodLight=mat('#d7b98b'),woodMid=mat('#caa778');for(let z=-d/2+.18,i=0;z<d/2-.15;z+=.3,i++)box(w-.25,.025,.27,0,.085,z,i%2?woodLight:woodMid);
+ const woodLight=mat('#d7b98b'),woodMid=mat('#caa778');for(let z=-d/2+.18,i=0;z<d/2-.15;z+=.3,i++)box(w-.25,.025,.27,0,detailed?-.01:.085,z,i%2?woodLight:woodMid);
  box(4.65,3.4,.09,.75,1.9,-d/2+.14,mats.white);box(4.3,3.05,.035,.75,1.9,-d/2+.22,mat('#151b19'));box(4.5,.08,.18,.75,.16,-d/2+.32,mats.metal);
  if(detailed){educationMedia=createEducationScreenMedia(THREE,'./assets/education-stretching.png');const screen=new THREE.Mesh(new THREE.PlaneGeometry(4.2,3.0),new THREE.MeshBasicMaterial({map:educationMedia.texture,toneMapped:false}));screen.position.set(.75,1.9,-d/2+.245);buildRoot.add(screen)}
  const glass=new THREE.MeshStandardMaterial({color:'#c9e3e5',transparent:true,opacity:.34,roughness:.18});for(const z of [-4.8,-2.3,.2,2.7,5.2])box(.035,2.45,2.15,w/2-.12,2.05,z,glass);
@@ -101,7 +101,7 @@ if(def.id==='education'){
  if(detailed){educationSeatPositions=educationSeats.map(item=>({x:item.x,z:item.z,approach:item.approach}));for(const item of educationSeats)register(item.seat,'education-seat',{room:def,x:item.x,z:item.z,approach:item.approach},roomClickable);register(guide.g,'education-talk',def,roomClickable);register(guideTag,'education-talk',def,roomClickable)}
  return;
 }
-box(2.4,.07,.8,doorX,.1,d/2-.1,mats.wood);box(2.6,.05,2.5,0,.12,2.4,def.color);
+box(2.4,detailed?.004:.07,.8,doorX,detailed?.002:.1,d/2-.1,mats.wood);box(2.6,detailed?.004:.05,2.5,0,detailed?.002:.12,2.4,def.color);
 if(def.id==='stress'){
  const {visitorSeats,staffZ}=buildPsychologyFurniture(buildRoot,mats);
  const guide=person('#e8f3ef');
@@ -128,7 +128,7 @@ if(!['general','cardio'].includes(def.id))plant(-3.9,-3.1,.9);plant(def.id==='ed
 const shelf=box(2,1.8,.5,3.5,.9,-4.1,mats.wood);for(let i=0;i<5;i++)box(.22,.7,.35,2.8+i*.32,1.05,-4,mats.white);
 if(def.id==='cardio'){let cardioBed=null;for(const item of CARDIO_EQUIPMENT){const device=addDevice(item.id,item.x,item.z,detailed,item.y);if(item.id==='bed')cardioBed=device;if(detailed&&item.id==='cholesterol')cholesterolScene=createCholesterolScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-cholesterol-stage',{detail:stage}))},()=>seat(true));if(detailed&&item.id==='glucose')glucoseScene=createGlucoseScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-glucose-stage',{detail:stage}));if(stage==='complete')queueMicrotask(()=>{if(cardioFlow==='hba1c')hba1cScene?.start();else if(cardioFlow==='arterial')arterialScene?.start();else if(cardioFlow==='standard')cholesterolScene?.start()})},()=>seat(true));if(detailed&&item.id==='hba1c')hba1cScene=createHbA1cScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-hba1c-stage',{detail:stage}))},()=>seat(true));if(detailed&&item.id==='arterial')arterialScene=createArterialScene(avatar,employee,cardioBed,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-arterial-stage',{detail:stage}))},()=>seat(true));if(detailed&&item.id==='heightweight')heightScene=createHeightScene(avatar,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('cardio-height-stage',{detail:stage}));if(stage==='complete')bpScene?.start()},()=>seat(true))}if(detailed){deviceTag('신장·체중 측정기','heightweight',-3.85,-3.1,true);deviceTag('동맥경화 검사기','arterial',2.55,-2.65,true)}}
 if(def.id==='general')makeDevice('bed',-3,-2.1,{parent:buildRoot,box,cylinder,sphere,mat,mats});
-if(def.id==='muscle'&&detailed){for(let z=-5.8;z<6;z+=.5)box(15.9,.015,.025,0,.09,z,'#c5aa82');for(const [type,x,z,name] of [['bike',-5,-3.2,'실내 자전거'],['treadmill',-5,.5,'걷기 운동기구'],['ceragem',5,-2.5,'세라젬'],['massage',5,1.5,'안마기'],['weights',0,-4.6,'운동 소도구'],['inbody',-6.7,4.4,'인바디 · 체성분 분석기'],['posture',6.3,4.2,'체형분석기']]){const device=addDevice(type,x,z,true);deviceTag(name,type,x,z,true);if(type==='inbody')muscleInbodyScene=createMuscleInBodyScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('muscle-inbody-stage',{detail:stage}))},()=>seat(true),()=>avatarGender,planConsultationWalk);if(type==='posture')postureScene=createPostureScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('muscle-posture-stage',{detail:stage}))},()=>seat(true),planConsultationWalk)}}
+if(def.id==='muscle'&&detailed){for(let z=-5.8;z<6;z+=.5)box(15.9,.003,.025,0,.0015,z,'#c5aa82');for(const [type,x,z,name] of [['bike',-5,-3.2,'실내 자전거'],['treadmill',-5,.5,'걷기 운동기구'],['ceragem',5,-2.5,'세라젬'],['massage',5,1.5,'안마기'],['weights',0,-4.6,'운동 소도구'],['inbody',-6.7,4.4,'인바디 · 체성분 분석기'],['posture',6.3,4.2,'체형분석기']]){const device=addDevice(type,x,z,true);deviceTag(name,type,x,z,true);if(type==='inbody')muscleInbodyScene=createMuscleInBodyScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('muscle-inbody-stage',{detail:stage}))},()=>seat(true),()=>avatarGender,planConsultationWalk);if(type==='posture')postureScene=createPostureScene(avatar,employee,device,sitPose,stage=>{applyView();document.dispatchEvent(new CustomEvent('muscle-posture-stage',{detail:stage}))},()=>seat(true),planConsultationWalk)}}
 if(def.id==='environment'){box(1.6,1.1,.5,-3.3,.6,-1,mats.green);for(let i=0;i<3;i++)cylinder(.15,.4,-3.8+i*.45,1.4,-1,[mats.yellow,mats.blue,mats.white][i]);box(1.2,1,.05,.3,2.4,-4.35,mats.yellow)}
 if(def.id==='stress'||def.id==='trauma'){const sofa=chair(-3.1,-1.4,mat('#deded2'));sofa.scale.x=1.65;cylinder(.7,.6,-2.7,.32,.3,mats.white);plant(3,-2.5,1.2);box(1.7,1.1,.05,.3,2.4,-4.35,def.color)}
 if(detailed){register(visitorChair,'seat',def,roomClickable);register(employee.g,'talk',def,roomClickable);register(tag,'talk',def,roomClickable);const seatTag=label('방문자 의자',0,1.3,2.9,'#305d4e',2.3);seatTag.material.toneMapped=false;seatTag.userData.hideDuringWaist=true;register(seatTag,'seat',def,roomClickable)}
@@ -224,8 +224,8 @@ document.addEventListener('aroma-cancel',()=>aromaScene?.cancel());
 document.addEventListener('cardio-waist-start',()=>{if(activeRoom?.id!=='cardio'||!seated||!waistScene)return;stand();keys.clear();destination=null;pathQueue=[];pathRequest++;marker.visible=false;waistScene.start();status.textContent='양팔을 어깨높이로 올리고 복부둘레 측정 동작을 체험합니다.';resize()});
 function stand(){cancelCardioMeasurement();if(!seated)return;equipmentPose=null;seatAfterMove=false;receptionAfterIntake=false;pendingSeat=null;avatar.g.rotation.x=0;seated=false;if(waitingSeated){waitingSeated=false;avatar.g.position.set(WAITING_SOFA.approach.x,0,WAITING_SOFA.approach.z);status.textContent='대기실 소파에서 일어났어요.'}else if(lastSeatApproach)avatar.g.position.set(lastSeatApproach.x,0,lastSeatApproach.z);else avatar.g.position.set(0,0,3.3);sitPose(avatar,false);notifySeat();resize()}
 function seatAt(x,z,resume=false,approach=null){if(approach?.equipment){applyEquipmentPose(approach.equipment);resize();return}cancelCardioMeasurement();if(!activeRoom)return;equipmentPose=null;avatar.g.rotation.x=0;destination=null;seatAfterMove=false;receptionAfterIntake=false;pendingSeat=null;marker.visible=false;keys.clear();seated=true;lastSeatApproach=approach||{x,z:z+1.2};avatar.g.position.set(x,.13,z);avatar.g.rotation.y=approach?.facing??Math.PI;sitPose(avatar,true);status.textContent=activeRoom.id==='education'?'교육실 의자에 앉았어요.':'방문자 의자에 앉았어요.';notifySeat(resume);resize()}
-function walkToSeat(target){if(!activeRoom)return;const approach=target.approach||{x:target.x,z:target.z+1.2};if(Math.hypot(avatar.g.position.x-approach.x,avatar.g.position.z-approach.z)<.25){seatAt(target.x,target.z,false,approach);return}if(moveTo(approach.x,approach.z)){pendingSeat={...target,approach};status.textContent='의자 뒤의 빈 통로로 이동하고 있어요.'}}
-function seat(resume=false){const target=activeRoom?.id==='stress'?PSYCHOLOGY_VISITOR_SEAT:activeRoom?.id==='education'?(educationSeatPositions[0]||{x:-3,z:-2.65,approach:{x:-3,z:-1.2}}):{x:0,z:2,approach:{x:0,z:3.8}};if(resume)seatAt(target.x,target.z,true,target.approach);else walkToSeat(target)}
+function walkToSeat(target){if(!activeRoom)return;const approach=target.approach||{x:target.x,z:target.z+1.2};if(Math.hypot(avatar.g.position.x-approach.x,avatar.g.position.z-approach.z)<.25){seatAt(target.x,target.z,false,approach);return}if(moveTo(approach.x,approach.z)){pendingSeat={...target,approach};status.textContent='의자 옆의 빈 통로로 이동하고 있어요.'}}
+function seat(resume=false){const target=activeRoom?.id==='stress'?PSYCHOLOGY_VISITOR_SEAT:activeRoom?.id==='education'?(educationSeatPositions[0]||{x:-3,z:-2.65,approach:{x:-3,z:-1.2}}):{x:0,z:2,approach:{x:1.55,z:1.5}};if(resume)seatAt(target.x,target.z,true,target.approach);else walkToSeat(target)}
 document.addEventListener('education-seat-select',event=>{if(activeRoom?.id!=='education')return;const target=educationSeatPositions[event.detail?.index||0];if(target)walkToSeat(target)});
 let waitingIntakePending=false,waitingSlideX=WAITING_SOFA.seat.x;
 const waitingSofaLeft=-12,waitingSofaRight=WAITING_SOFA.seat.x;

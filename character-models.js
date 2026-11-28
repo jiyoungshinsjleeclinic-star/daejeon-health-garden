@@ -38,7 +38,7 @@ export async function loadCharacterModels() {
     textures.set(name, texture);
   }));
   for (const [gender, gltf] of await Promise.all(['male','female'].map(async gender =>
-    [gender, await gltfLoader.loadAsync(new URL(gender + '.glb', directory).href)]))) {
+    [gender, await gltfLoader.loadAsync(new URL(gender + '.glb?v=fit-2', directory).href)]))) {
     const parts = [];
     gltf.scene.traverse(node => {
       if (!node.isMesh) return;

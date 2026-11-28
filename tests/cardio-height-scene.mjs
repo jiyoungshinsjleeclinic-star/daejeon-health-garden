@@ -13,6 +13,12 @@ for(const [name,seconds] of HEIGHT_SEQUENCE){
  if(['ready','head-down','head-hold','head-up','step-down-request'].includes(name)){assert(state.onPlatform);assert(state.barefoot);assert(!state.shoesOn);assert(state.looseShoesVisible);assert.equal(visitor.g.rotation.y,0)}
  if(name==='head-down'||name==='head-up')assert(state.headY<state.headHomeY&&state.headY>2.47);
  if(name==='head-hold')assert(Math.abs(state.headY-2.47)<1e-6);
+ if(name==='sitting'){
+  for(const fraction of [0,.15,.3,.5,.75,.95]){
+   scene.update(start+(elapsed+seconds*fraction)*1000);
+   assert(visitor.g.position.z<=2.001,'Return to the cushion from its open front');
+  }
+ }
  if(name==='shoes-off')assert(!state.shoesOn);
  if(name==='shoes-on')assert(state.shoesOn);
  elapsed+=seconds;

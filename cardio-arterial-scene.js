@@ -5,7 +5,7 @@ export const ARTERIAL_SEQUENCE=[['invitation',8],['standing',1],['walking-bed',5
 
 export function createArterialScene(visitor,employee,bed,device,pose,onStage,onComplete){
  const display=device.userData.arterialDisplay,rackCuffs=device.userData.arterialCuffProps||[],rackHomes=device.userData.arterialCuffHomes||rackCuffs.map(cuff=>({position:cuff.position.clone(),quaternion:cuff.quaternion.clone()})),rackCables=device.userData.arterialCuffCables||[],bedPoint=new THREE.Vector3(bed.position.x,1.06,bed.position.z+.72),bedSide=new THREE.Vector3(bed.position.x-1.35,0,bed.position.z+1.15),seatPoint=new THREE.Vector3(0,.13,2);
- const visitorRoute=[new THREE.Vector3(0,0,3.3),new THREE.Vector3(2.2,0,3.3),new THREE.Vector3(2.2,0,2),bedSide];
+ const visitorRoute=[new THREE.Vector3(0,0,1.08),new THREE.Vector3(2.2,0,1.08),new THREE.Vector3(2.2,0,2),bedSide];
  const staffRoute=[new THREE.Vector3(0,.13,-2),new THREE.Vector3(1.7,0,-2),new THREE.Vector3(2.35,0,-1.25),new THREE.Vector3(2.35,0,.25)];
  const staffRackPoint=new THREE.Vector3(1.55,0,-1.45);
  const looseShoes=new THREE.Group();bed.parent.add(looseShoes);looseShoes.visible=false;
